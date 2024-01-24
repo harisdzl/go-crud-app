@@ -9,8 +9,8 @@ import (
 func ProductRoutes(router *gin.Engine, p *base.Persistence) {
     products := handlers.NewProduct(p)
 
-    products.UpdateMongo()
-
+    products.UpdateSearchDB()
+    
     router.POST("/products", products.SaveProduct)
     router.POST("/products/multiple", products.SaveMultipleProducts)
     router.GET("/products", products.GetAllProducts)

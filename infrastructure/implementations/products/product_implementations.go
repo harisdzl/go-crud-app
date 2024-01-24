@@ -1,7 +1,6 @@
 package products
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -155,6 +154,7 @@ func (r *ProductRepo) DeleteProduct(id int64) error {
 	searchRepo := search.NewSearchRepository("Mongo", r.p)
 
 	err := r.p.DB.Debug().Where("id = ?", id).Delete(product).Error
+	
 	searchErr := searchRepo.DeleteSingleDoc(id)
 	cacheRepo := cache.NewCacheRepository("Redis", r.p)
 
@@ -174,19 +174,14 @@ func (r *ProductRepo) SearchProduct(name string) ([]entity.Product, error) {
 
 	searchRepo := search.NewSearchRepository("Mongo", r.p)
 
-    // cacheKey := fmt.Sprintf("search:%s", name)
 
 	// Extract the results from the cursor
 	var results []entity.Product
 
-	mongoSearched, err := searchRepo.SearchDocByName(name)
+	err := searchRepo.SearchDocByName(name, &results)
+	
 	if err != nil {
 		fmt.Println(err)
-	}
-
-	if err := mongoSearched.All(context.TODO(), &results); err != nil {
-		fmt.Println(err)
-		return nil, err
 	}
 
 	if len(results) == 0 {
@@ -197,7 +192,7 @@ func (r *ProductRepo) SearchProduct(name string) ([]entity.Product, error) {
 }
 
 
-func (r *ProductRepo) UpdateProductsInMongo() error {
+func (r *ProductRepo) UpdateProductsInSearchDB() error {
 	searchRepo := search.NewSearchRepository("Mongo", r.p)
 
 	products, err := r.GetAllProducts()

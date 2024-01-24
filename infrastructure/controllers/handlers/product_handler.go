@@ -28,6 +28,17 @@ func NewProduct(p *base.Persistence) *Product {
 	}
 }
 
+// SaveProduct saves a single product to the database.
+// @Summary Save a single product
+// @Description SaveProduct saves a single product to the database.
+// @Tags Product
+// @Accept json
+// @Produce json
+// @Param product body entity.Product true "Product object to be saved"
+// @Success 201 {object} entity.Product "Successfully saved product"
+// @Failure 400 {object} map[string]string "Invalid JSON"
+// @Failure 422 {object} map[string]string "Unprocessable entity"
+// @Router /products [post]
 func (pr *Product) SaveProduct(c *gin.Context) {
 	var product = entity.Product{}
 
@@ -51,6 +62,17 @@ func (pr *Product) SaveProduct(c *gin.Context) {
 
 }
 
+// SaveMultipleProducts saves multiple products to the database.
+// @Summary Saves multiple product
+// @Description SaveMultipleProducts saves multiple products to the databaswe.
+// @Tags Product
+// @Accept json
+// @Produce json
+// @Param product body entity.Product true "Product object to be saved"
+// @Success 201 {object} entity.Product "Successfully saved product"
+// @Failure 400 {object} map[string]string "Invalid JSON"
+// @Failure 422 {object} map[string]string "Unprocessable entity"
+// @Router /products [post]
 func (pr *Product) SaveMultipleProducts(c *gin.Context) {
 	var product = []entity.Product{}
 
@@ -185,9 +207,9 @@ func (pr *Product) SearchProduct(c *gin.Context) {
 }
 
 
-func (pr *Product) UpdateMongo() {
+func (pr *Product) UpdateSearchDB() {
 	pr.productRepo = application.NewProductApplication(pr.Persistence)
-	updateErr := pr.productRepo.UpdateProductsInMongo()
+	updateErr := pr.productRepo.UpdateProductsInSearchDB()
 
 	if updateErr != nil {
 		fmt.Println("fail to update products in mongbodb")

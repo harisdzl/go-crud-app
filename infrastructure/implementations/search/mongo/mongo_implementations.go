@@ -125,12 +125,12 @@ func (m mongoRepo) InsertAllDoc(value []interface{}) (error) {
 	return nil
 }
 
-func (m mongoRepo) SearchDocByName(name string) (*mongo.Cursor, error) {
+func (m mongoRepo) SearchDocByName(name string, src interface{}) error {
 	// Check if there is a Mongo connection 
 	DBName := os.Getenv("DB_MONGO_NAME")
 	DbCollection := os.Getenv("DB_MONGO_COLLECTION_PRODUCTS")
 	if m.p.DbMongo == nil {
-		return nil, errors.New("MONGO NOT FOUND")
+		return errors.New("MONGO NOT FOUND")
 	}
 	
 	ctx := context.TODO()
@@ -158,10 +158,15 @@ func (m mongoRepo) SearchDocByName(name string) (*mongo.Cursor, error) {
 	cursor, err := m.p.DbMongo.Database(DBName).Collection(DbCollection).Aggregate(ctx, mongo.Pipeline{searchStage, sortStage}, opts)
 	if err != nil {
 		fmt.Println(err)
-		return nil, err
+		return err
 	}
 
-	return cursor, nil
+	if err := cursor.All(context.TODO(), src); err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
 }
 
 

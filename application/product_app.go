@@ -61,9 +61,9 @@ func (a *productApp) SearchProduct(name string) ([]entity.Product, error) {
 	return repoProduct.SearchProduct(name)
 }
 
-func (a *productApp) UpdateProductsInMongo() (error) {
+func (a *productApp) UpdateProductsInSearchDB() (error) {
 	repoProduct := products.NewProductRepository(a.p)
-	return repoProduct.UpdateProductsInMongo()
+	return repoProduct.UpdateProductsInSearchDB()
 }
 
 

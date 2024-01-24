@@ -12,5 +12,5 @@ type ProductRepository interface {
 	UpdateProduct(*entity.Product) (*entity.Product, error)
 	DeleteProduct(int64) error
 	SearchProduct(string) ([]entity.Product, error)
-	UpdateProductsInMongo() (error)
+	UpdateProductsInSearchDB() (error)
 }
