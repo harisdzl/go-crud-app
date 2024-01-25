@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/harisquqo/quqo-challenge-1/domain/entity"
+	"github.com/harisquqo/quqo-challenge-1/domain/entity/product_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/search_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 )
@@ -19,26 +19,31 @@ type elasticSearchRepo struct {
 }
 
 
-func (e elasticSearchRepo) InsertDoc(value interface{}) (error) {
+func (e elasticSearchRepo) InsertDoc(collectionName string, value interface{}) (error) {
 	data, _ := json.Marshal(value)
-	e.p.DbElastic.Index("search-challenge", bytes.NewReader(data))
+	e.p.DbElastic.Index(collectionName, bytes.NewReader(data))
 	return nil
 }
 
-func (e elasticSearchRepo) UpdateDoc(productId uint, updatedFields interface{}) (error) {
+func (e elasticSearchRepo) UpdateDoc(productId uint, collectionName string, updatedFields interface{}) (error) {
 
 	data, _ := json.Marshal(updatedFields)
 
-	e.p.DbElastic.Update("search-challenge", fmt.Sprint(productId), bytes.NewReader(data))
+	e.p.DbElastic.Update(collectionName, fmt.Sprint(productId), bytes.NewReader(data))
 	return nil
 }
 
-func (e elasticSearchRepo) DeleteSingleDoc(productId int64) (error) {
-	e.p.DbElastic.Delete("search-challenge", fmt.Sprint(productId))
+func (e elasticSearchRepo) DeleteSingleDoc(fieldName string, collectionName string, id int64) (error) {
+	e.p.DbElastic.Delete(collectionName, fmt.Sprint(id))
 	return nil
 }
 
-func (e elasticSearchRepo) DeleteAllDoc(value []interface{}) (error) {
+func (e elasticSearchRepo) DeleteMultipleDoc(fieldName string, collectionName string, id int64) (error) {
+	e.p.DbElastic.Delete(collectionName, fmt.Sprint(id))
+	return nil
+}
+
+func (e elasticSearchRepo) DeleteAllDoc(collectionName string, value []interface{}) (error) {
 	if e.p.DbElastic == nil {
 		return errors.New("ELASTICSEARCH NOT FOUND")
 	}
@@ -55,7 +60,7 @@ func (e elasticSearchRepo) DeleteAllDoc(value []interface{}) (error) {
 		return err
 	}
 
-	res, err := e.p.DbElastic.DeleteByQuery([]string{"search-challenge"}, bytes.NewReader(queryJSON))
+	res, err := e.p.DbElastic.DeleteByQuery([]string{collectionName}, bytes.NewReader(queryJSON))
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -65,7 +70,7 @@ func (e elasticSearchRepo) DeleteAllDoc(value []interface{}) (error) {
 	return nil
 }
 
-func (e elasticSearchRepo) InsertAllDoc(value []interface{}) (error) {
+func (e elasticSearchRepo) InsertAllDoc(collectionName string, value []interface{}) (error) {
 	// Iterate over each document and index it
 	data, _ := json.Marshal(value)
 
@@ -78,19 +83,19 @@ func (e elasticSearchRepo) InsertAllDoc(value []interface{}) (error) {
 		}
 
 		// Index the document
-		_, err = e.p.DbElastic.Index("search-challenge", bytes.NewReader(data))
+		_, err = e.p.DbElastic.Index(collectionName, bytes.NewReader(data))
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
 	}
 
-	e.p.DbElastic.Index("search-challenge", bytes.NewReader(data))
+	e.p.DbElastic.Index(collectionName, bytes.NewReader(data))
 
 	return nil
 }
 
-func (e elasticSearchRepo) SearchDocByName(name string, src interface{}) error {
+func (e elasticSearchRepo) SearchDocByName(name string, indexName string, src interface{}) error {
     query := fmt.Sprintf(`{
         "query": {
             "match": {
@@ -100,7 +105,7 @@ func (e elasticSearchRepo) SearchDocByName(name string, src interface{}) error {
     }`, name)
 
     response, err := e.p.DbElastic.Search(
-        e.p.DbElastic.Search.WithIndex("search-challenge"),
+        e.p.DbElastic.Search.WithIndex(indexName),
         e.p.DbElastic.Search.WithBody(strings.NewReader(query)),
     )
     if err != nil {
@@ -123,7 +128,7 @@ func (e elasticSearchRepo) SearchDocByName(name string, src interface{}) error {
         return errors.New("unexpected response structure")
     }
 
-    var searchResults []entity.Product
+    var searchResults []product_entity.Product
 
     for _, hit := range hits {
         source, ok := hit.(map[string]interface{})["_source"].(map[string]interface{})
@@ -136,7 +141,7 @@ func (e elasticSearchRepo) SearchDocByName(name string, src interface{}) error {
             return err
         }
 
-        var product entity.Product
+        var product product_entity.Product
         if err := json.Unmarshal(productBytes, &product); err != nil {
             return err
         }

@@ -4,7 +4,8 @@ import (
 	"log"
 
 	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/harisquqo/quqo-challenge-1/domain/entity"
+	"github.com/harisquqo/quqo-challenge-1/domain/entity/inventory_entity"
+	"github.com/harisquqo/quqo-challenge-1/domain/entity/product_entity"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base/db"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -56,5 +57,5 @@ func NewPersistence() (*Persistence, error) {
 
 //This migrate all tables
 func (s *Persistence) Automigrate() error {
-	return s.DB.AutoMigrate(&entity.Product{})
+	return s.DB.AutoMigrate(&product_entity.Product{}, &inventory_entity.Inventory{})
 }

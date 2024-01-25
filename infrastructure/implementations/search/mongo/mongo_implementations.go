@@ -20,17 +20,16 @@ type mongoRepo struct {
 }
 
 
-func (m mongoRepo) InsertDoc(value interface{}) (error) {
+func (m mongoRepo) InsertDoc(collectionName string, value interface{}) (error) {
 	// Check if there is a Mongo connection 
 	DBName := os.Getenv("DB_MONGO_NAME")
-	DbCollection := os.Getenv("DB_MONGO_COLLECTION_PRODUCTS")
 	if m.p.DbMongo == nil {
 		return errors.New("MONGO NOT FOUND")
 	}
 
 	ctx := context.TODO()
 
-	_, err := m.p.DbMongo.Database(DBName).Collection(DbCollection).InsertOne(ctx, value)
+	_, err := m.p.DbMongo.Database(DBName).Collection(collectionName).InsertOne(ctx, value)
 	if err != nil {
 		fmt.Println(err)
 		return nil
@@ -40,10 +39,9 @@ func (m mongoRepo) InsertDoc(value interface{}) (error) {
 
 }
 
-func (m mongoRepo) UpdateDoc(productId uint, updatedFields interface{}) (error) {
+func (m mongoRepo) UpdateDoc(productId uint, collectionName string, updatedFields interface{}) (error) {
 	// Check if there is a Mongo connection 
 	DBName := os.Getenv("DB_MONGO_NAME")
-	DbCollection := os.Getenv("DB_MONGO_COLLECTION_PRODUCTS")
 	if m.p.DbMongo == nil {
 		return errors.New("MONGO NOT FOUND")
 	}
@@ -54,7 +52,7 @@ func (m mongoRepo) UpdateDoc(productId uint, updatedFields interface{}) (error) 
 	update := bson.M{"$set": updatedFields}
 
 	// Perform the update
-	_, err := m.p.DbMongo.Database(DBName).Collection(DbCollection).UpdateOne(ctx, filter, update)
+	_, err := m.p.DbMongo.Database(DBName).Collection(collectionName).UpdateOne(ctx, filter, update)
 
 	if err != nil {
 		fmt.Println(err)
@@ -65,17 +63,16 @@ func (m mongoRepo) UpdateDoc(productId uint, updatedFields interface{}) (error) 
 
 }
 
-func (m mongoRepo) DeleteSingleDoc(productId int64) (error) {
+func (m mongoRepo) DeleteSingleDoc(fieldName string, collectionName string, id int64) (error) {
 	// Check if there is a Mongo connection 
 	DBName := os.Getenv("DB_MONGO_NAME")
-	DbCollection := os.Getenv("DB_MONGO_COLLECTION_PRODUCTS")
 	if m.p.DbMongo == nil {
 		return errors.New("MONGO NOT FOUND")
 	}
 
 	ctx := context.TODO()
-	filter := bson.M{"id": productId}
-	_, err := m.p.DbMongo.Database(DBName).Collection(DbCollection).DeleteOne(ctx, filter)
+	filter := bson.M{fieldName: id}
+	_, err := m.p.DbMongo.Database(DBName).Collection(collectionName).DeleteOne(ctx, filter)
 	if err != nil {
 		fmt.Println(err)
 		return nil
@@ -85,17 +82,35 @@ func (m mongoRepo) DeleteSingleDoc(productId int64) (error) {
 
 }
 
-func (m mongoRepo) DeleteAllDoc(value []interface{}) (error) {
+func (m mongoRepo) DeleteMultipleDoc(fieldName string, collectionName string, id int64) (error) {
 	// Check if there is a Mongo connection 
 	DBName := os.Getenv("DB_MONGO_NAME")
-	DbCollection := os.Getenv("DB_MONGO_COLLECTION_PRODUCTS")
+	if m.p.DbMongo == nil {
+		return errors.New("MONGO NOT FOUND")
+	}
+
+	ctx := context.TODO()
+	filter := bson.M{fieldName: id}
+	_, err := m.p.DbMongo.Database(DBName).Collection(collectionName).DeleteMany(ctx, filter)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	return nil
+
+}
+
+func (m mongoRepo) DeleteAllDoc(collectionName string, value []interface{}) (error) {
+	// Check if there is a Mongo connection 
+	DBName := os.Getenv("DB_MONGO_NAME")
 	if m.p.DbMongo == nil {
 		return errors.New("MONGO NOT FOUND")
 	}
 
 	ctx := context.TODO()
 	filter := bson.D{}
-	_, err := m.p.DbMongo.Database(DBName).Collection(DbCollection).DeleteMany(ctx, filter)
+	_, err := m.p.DbMongo.Database(DBName).Collection(collectionName).DeleteMany(ctx, filter)
 
 	if err != nil {
 		fmt.Println(err)
@@ -105,17 +120,16 @@ func (m mongoRepo) DeleteAllDoc(value []interface{}) (error) {
 	return nil
 }
 
-func (m mongoRepo) InsertAllDoc(value []interface{}) (error) {
+func (m mongoRepo) InsertAllDoc(collectionName string, value []interface{}) (error) {
 	// Check if there is a Mongo connection 
 	DBName := os.Getenv("DB_MONGO_NAME")
-	DbCollection := os.Getenv("DB_MONGO_COLLECTION_PRODUCTS")
 	if m.p.DbMongo == nil {
 		return errors.New("MONGO NOT FOUND")
 	}
 
 	ctx := context.TODO()
 
-	_, err := m.p.DbMongo.Database(DBName).Collection(DbCollection).InsertMany(ctx, value)
+	_, err := m.p.DbMongo.Database(DBName).Collection(collectionName).InsertMany(ctx, value)
 
 	if err != nil {
 		fmt.Println(err)
@@ -125,10 +139,9 @@ func (m mongoRepo) InsertAllDoc(value []interface{}) (error) {
 	return nil
 }
 
-func (m mongoRepo) SearchDocByName(name string, src interface{}) error {
+func (m mongoRepo) SearchDocByName(name string, indexName string, src interface{}) error {
 	// Check if there is a Mongo connection 
 	DBName := os.Getenv("DB_MONGO_NAME")
-	DbCollection := os.Getenv("DB_MONGO_COLLECTION_PRODUCTS")
 	if m.p.DbMongo == nil {
 		return errors.New("MONGO NOT FOUND")
 	}
@@ -136,7 +149,7 @@ func (m mongoRepo) SearchDocByName(name string, src interface{}) error {
 	ctx := context.TODO()
 	searchStage := bson.D{
 		{"$search", bson.D{
-			{"index", "default"},
+			{"index", indexName},
 			{"text", bson.D{
 				{"query", name},
 				{"path", bson.A{"name"}},
@@ -155,7 +168,7 @@ func (m mongoRepo) SearchDocByName(name string, src interface{}) error {
 
 	// Use the Aggregate method to perform the search
 	opts := options.Aggregate().SetMaxTime(5 * time.Second)
-	cursor, err := m.p.DbMongo.Database(DBName).Collection(DbCollection).Aggregate(ctx, mongo.Pipeline{searchStage, sortStage}, opts)
+	cursor, err := m.p.DbMongo.Database(DBName).Collection(indexName).Aggregate(ctx, mongo.Pipeline{searchStage, sortStage}, opts)
 	if err != nil {
 		fmt.Println(err)
 		return err

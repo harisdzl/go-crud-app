@@ -9,9 +9,8 @@ import (
 func InitRouter(p *base.Persistence) *gin.Engine {
 
 	r := gin.Default()
-
-	
+	p.Automigrate()
 	ProductRoutes(r, p)
-	
+	InventoryRoutes(r, p)
 	return r
 }

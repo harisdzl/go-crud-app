@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/harisquqo/quqo-challenge-1/domain/entity"
+	"github.com/harisquqo/quqo-challenge-1/domain/entity/product_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/product_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/cache"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/search"
@@ -27,14 +27,14 @@ func NewProductRepository(p *base.Persistence) *ProductRepo {
 // To explicitly check that the ProductRepo implements the repository.ProductRepository interface
 var _ product_repository.ProductRepository = &ProductRepo{}
 
-func (r *ProductRepo) SaveProduct(product *entity.Product) (*entity.Product, map[string]string) {
+func (r *ProductRepo) SaveProduct(product *product_entity.Product) (*product_entity.Product, map[string]string) {
 
 	cacheRepo := cache.NewCacheRepository("Redis", r.p)
 	searchRepo := search.NewSearchRepository("Mongo", r.p)
 
 	dbErr := map[string]string{}
 	err := r.p.DB.Debug().Create(&product).Error
-
+	collectionName := "products"
 	if err != nil {
 		fmt.Println("Failed to create product")
 		fmt.Println(err)
@@ -42,7 +42,7 @@ func (r *ProductRepo) SaveProduct(product *entity.Product) (*entity.Product, map
 		return nil, dbErr
 	}
 
-	searchErr := searchRepo.InsertDoc(&product)
+	searchErr := searchRepo.InsertDoc(collectionName, &product)
 
 	if searchErr != nil {
 		fmt.Println(searchErr)
@@ -55,40 +55,41 @@ func (r *ProductRepo) SaveProduct(product *entity.Product) (*entity.Product, map
 	return product, nil
 }
 
-func (r *ProductRepo) SaveMultipleProducts(product *[]entity.Product) (*[]entity.Product, map[string]string) {
-	dbErr := map[string]string{}
-	err := r.p.DB.Debug().Create(&product).Error
-	if err != nil {
-		fmt.Println("Failed to create products")
-		fmt.Println(err)
-		dbErr["db_error"] = "database error"
-		return nil, dbErr
-	}
+// func (r *ProductRepo) SaveMultipleProducts(product *[]product_entity.Product) (*[]product_entity.Product, map[string]string) {
+// 	dbErr := map[string]string{}
+// 	err := r.p.DB.Debug().Create(&product).Error
+// 	if err != nil {
+// 		fmt.Println("Failed to create products")
+// 		fmt.Println(err)
+// 		dbErr["db_error"] = "database error"
+// 		return nil, dbErr
+// 	}
+// 	collectionName := "products"
 
-	var allProducts []interface{}
+// 	var allProducts []interface{}
 
-    for _, p := range *product {
-        allProducts = append(allProducts, p)
-    }
+//     for _, p := range *product {
+//         allProducts = append(allProducts, p)
+//     }
 
-    searchRepo := search.NewSearchRepository("Mongo", r.p)
+//     searchRepo := search.NewSearchRepository("Mongo", r.p)
 
-    searchErr := searchRepo.InsertAllDoc(allProducts)
+//     searchErr := searchRepo.InsertAllDoc(collectionName, allProducts)
 
-    if searchErr != nil {
-        fmt.Println("Failed to insert products into search index")
-        fmt.Println(searchErr)
-        dbErr["search_error"] = "search index error"
-        return nil, dbErr
-    }
+//     if searchErr != nil {
+//         fmt.Println("Failed to insert products into search index")
+//         fmt.Println(searchErr)
+//         dbErr["search_error"] = "search index error"
+//         return nil, dbErr
+//     }
 
 
 
-	return product, nil
-}
+// 	return product, nil
+// }
 
-func (r *ProductRepo) GetProduct(id int64) (*entity.Product, error) {
-	var product *entity.Product
+func (r *ProductRepo) GetProduct(id int64) (*product_entity.Product, error) {
+	var product *product_entity.Product
 
 	cacheRepo := cache.NewCacheRepository("Redis", r.p)
 	_ = cacheRepo.GetKey(fmt.Sprint(id), &product)
@@ -106,8 +107,8 @@ func (r *ProductRepo) GetProduct(id int64) (*entity.Product, error) {
 	return product, nil
 }
 
-func (r *ProductRepo) GetAllProducts() ([]entity.Product, error) {
-	var products []entity.Product
+func (r *ProductRepo) GetAllProducts() ([]product_entity.Product, error) {
+	var products []product_entity.Product
 	err := r.p.DB.Debug().Find(&products).Error
 	if err != nil {
 		return nil, err
@@ -120,9 +121,10 @@ func (r *ProductRepo) GetAllProducts() ([]entity.Product, error) {
 	return products, nil
 }
 
-func (r *ProductRepo) UpdateProduct(product *entity.Product) (*entity.Product, error) {
+func (r *ProductRepo) UpdateProduct(product *product_entity.Product) (*product_entity.Product, error) {
 	cacheRepo := cache.NewCacheRepository("Redis", r.p)
 	searchRepo := search.NewSearchRepository("Mongo", r.p)
+	collectionName := "products"
 
 	err := r.p.DB.Debug().Where("id = ?", product.ID).Updates(&product).Error
 	if err != nil {
@@ -133,7 +135,7 @@ func (r *ProductRepo) UpdateProduct(product *entity.Product) (*entity.Product, e
 		return nil, err
 	}
 
-	searchErr := searchRepo.UpdateDoc(uint(product.ID), &product)
+	searchErr := searchRepo.UpdateDoc(uint(product.ID), collectionName, &product)
 
 	if searchErr != nil {
 		return nil, err
@@ -150,12 +152,13 @@ func (r *ProductRepo) UpdateProduct(product *entity.Product) (*entity.Product, e
 }
 
 func (r *ProductRepo) DeleteProduct(id int64) error {
-	var product entity.Product
+	var product product_entity.Product
 	searchRepo := search.NewSearchRepository("Mongo", r.p)
-
+	collectionName := "products"
+	fieldName := "id"
 	err := r.p.DB.Debug().Where("id = ?", id).Delete(product).Error
 	
-	searchErr := searchRepo.DeleteSingleDoc(id)
+	searchErr := searchRepo.DeleteSingleDoc(fieldName, collectionName, id)
 	cacheRepo := cache.NewCacheRepository("Redis", r.p)
 
 	cacheRepo.DelKey(fmt.Sprint(id))
@@ -170,15 +173,15 @@ func (r *ProductRepo) DeleteProduct(id int64) error {
 	return nil
 }
 
-func (r *ProductRepo) SearchProduct(name string) ([]entity.Product, error) {
+func (r *ProductRepo) SearchProduct(name string) ([]product_entity.Product, error) {
 
 	searchRepo := search.NewSearchRepository("Mongo", r.p)
-
+	indexName := "products"
 
 	// Extract the results from the cursor
-	var results []entity.Product
+	var results []product_entity.Product
 
-	err := searchRepo.SearchDocByName(name, &results)
+	err := searchRepo.SearchDocByName(name, indexName, &results)
 	
 	if err != nil {
 		fmt.Println(err)
@@ -194,6 +197,7 @@ func (r *ProductRepo) SearchProduct(name string) ([]entity.Product, error) {
 
 func (r *ProductRepo) UpdateProductsInSearchDB() error {
 	searchRepo := search.NewSearchRepository("Mongo", r.p)
+	collectionName := "products"
 
 	products, err := r.GetAllProducts()
 	if err != nil {
@@ -206,8 +210,8 @@ func (r *ProductRepo) UpdateProductsInSearchDB() error {
 	for _, p := range products {
 		allProducts = append(allProducts, p)
 	}
-	searchDeleteAllErr := searchRepo.DeleteAllDoc(allProducts)
-	searchInsertAll := searchRepo.InsertAllDoc(allProducts)
+	searchDeleteAllErr := searchRepo.DeleteAllDoc(collectionName, allProducts)
+	searchInsertAll := searchRepo.InsertAllDoc(collectionName, allProducts)
 
 	if searchDeleteAllErr != nil {
 		return errors.New("Fail to delete all docs")
