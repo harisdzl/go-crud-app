@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/search_repository"
+	"github.com/harisquqo/quqo-challenge-1/infrastructure/config"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -22,7 +22,7 @@ type mongoRepo struct {
 
 func (m mongoRepo) InsertDoc(collectionName string, value interface{}) (error) {
 	// Check if there is a Mongo connection 
-	DBName := os.Getenv("DB_MONGO_NAME")
+	DBName := config.Configuration.GetString("mongoDb.dev.name")
 	if m.p.DbMongo == nil {
 		return errors.New("MONGO NOT FOUND")
 	}
@@ -41,7 +41,7 @@ func (m mongoRepo) InsertDoc(collectionName string, value interface{}) (error) {
 
 func (m mongoRepo) UpdateDoc(productId uint, collectionName string, updatedFields interface{}) (error) {
 	// Check if there is a Mongo connection 
-	DBName := os.Getenv("DB_MONGO_NAME")
+	DBName := config.Configuration.GetString("mongoDb.dev.name")
 	if m.p.DbMongo == nil {
 		return errors.New("MONGO NOT FOUND")
 	}
@@ -65,7 +65,7 @@ func (m mongoRepo) UpdateDoc(productId uint, collectionName string, updatedField
 
 func (m mongoRepo) DeleteSingleDoc(fieldName string, collectionName string, id int64) (error) {
 	// Check if there is a Mongo connection 
-	DBName := os.Getenv("DB_MONGO_NAME")
+	DBName := config.Configuration.GetString("mongoDb.dev.name")
 	if m.p.DbMongo == nil {
 		return errors.New("MONGO NOT FOUND")
 	}
@@ -84,7 +84,7 @@ func (m mongoRepo) DeleteSingleDoc(fieldName string, collectionName string, id i
 
 func (m mongoRepo) DeleteMultipleDoc(fieldName string, collectionName string, id int64) (error) {
 	// Check if there is a Mongo connection 
-	DBName := os.Getenv("DB_MONGO_NAME")
+	DBName := config.Configuration.GetString("mongoDb.dev.name")
 	if m.p.DbMongo == nil {
 		return errors.New("MONGO NOT FOUND")
 	}
@@ -103,7 +103,7 @@ func (m mongoRepo) DeleteMultipleDoc(fieldName string, collectionName string, id
 
 func (m mongoRepo) DeleteAllDoc(collectionName string, value []interface{}) (error) {
 	// Check if there is a Mongo connection 
-	DBName := os.Getenv("DB_MONGO_NAME")
+	DBName := config.Configuration.GetString("mongoDb.dev.name")
 	if m.p.DbMongo == nil {
 		return errors.New("MONGO NOT FOUND")
 	}
@@ -122,7 +122,7 @@ func (m mongoRepo) DeleteAllDoc(collectionName string, value []interface{}) (err
 
 func (m mongoRepo) InsertAllDoc(collectionName string, value []interface{}) (error) {
 	// Check if there is a Mongo connection 
-	DBName := os.Getenv("DB_MONGO_NAME")
+	DBName := config.Configuration.GetString("mongoDb.dev.name")
 	if m.p.DbMongo == nil {
 		return errors.New("MONGO NOT FOUND")
 	}
@@ -141,7 +141,7 @@ func (m mongoRepo) InsertAllDoc(collectionName string, value []interface{}) (err
 
 func (m mongoRepo) SearchDocByName(name string, indexName string, src interface{}) error {
 	// Check if there is a Mongo connection 
-	DBName := os.Getenv("DB_MONGO_NAME")
+	DBName := config.Configuration.GetString("mongoDb.dev.name")
 	if m.p.DbMongo == nil {
 		return errors.New("MONGO NOT FOUND")
 	}

@@ -3,8 +3,8 @@ package db
 import (
 	"fmt"
 	"log"
-	"os"
 
+	"github.com/harisquqo/quqo-challenge-1/infrastructure/config"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -12,8 +12,8 @@ import (
 
 func NewRedisDB() (*redis.Client, error) {
 	// connection DB
-	DbHost := os.Getenv("DB_REDIS_HOST")
-	DbPassword := os.Getenv("DB_REDIS_PW")
+	DbHost := config.Configuration.GetString("redis.dev.host")
+	DbPassword := config.Configuration.GetString("redis.dev.password")
 	rdb := redis.NewClient(&redis.Options{
 		Addr:	  DbHost,
 		Password: DbPassword, // no password set

@@ -50,7 +50,7 @@ func (r *ProductRepo) SaveProduct(product *product_entity.Product) (*product_ent
 		dbErr["db_error"] = "database error"
 		return nil, dbErr
 	}
-	cacheRepo.SetKey(fmt.Sprint(product.ID), product, time.Minute * 15)
+	cacheRepo.SetKey(fmt.Sprintf("%v_PRODUCTS", product.ID), product, time.Minute * 15)
 	
 	return product, nil
 }
@@ -92,14 +92,14 @@ func (r *ProductRepo) GetProduct(id int64) (*product_entity.Product, error) {
 	var product *product_entity.Product
 
 	cacheRepo := cache.NewCacheRepository("Redis", r.p)
-	_ = cacheRepo.GetKey(fmt.Sprint(id), &product)
+	_ = cacheRepo.GetKey(fmt.Sprintf("%v_PRODUCTS", id), &product)
 	if product == nil {
 		err := r.p.DB.Debug().Where("id = ?", id).Take(&product).Error
 		if err != nil {
 			fmt.Println("Failed to get product")
 		}
 		if product != nil && product.ID > 0 {
-			_ = cacheRepo.SetKey(fmt.Sprint(id), product, time.Minute * 15)
+			_ = cacheRepo.SetKey(fmt.Sprintf("%v_PRODUCTS", id), product, time.Minute * 15)
 		}
 	}
 
@@ -145,7 +145,7 @@ func (r *ProductRepo) UpdateProduct(product *product_entity.Product) (*product_e
 		return nil, err
 	}
 
-	_ = cacheRepo.SetKey(fmt.Sprint(product.ID), product, time.Minute * 15)
+	_ = cacheRepo.SetKey(fmt.Sprintf("%v_PRODUCTS", product.ID), product, time.Minute * 15)
 
 
 	return product, nil
@@ -161,7 +161,7 @@ func (r *ProductRepo) DeleteProduct(id int64) error {
 	searchErr := searchRepo.DeleteSingleDoc(fieldName, collectionName, id)
 	cacheRepo := cache.NewCacheRepository("Redis", r.p)
 
-	cacheRepo.DelKey(fmt.Sprint(id))
+	cacheRepo.DelKey(fmt.Sprintf("%v_PRODUCTS", id))
 	if err != nil {
 		return errors.New("database error, please try again")
 	}

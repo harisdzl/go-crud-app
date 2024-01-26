@@ -12,6 +12,7 @@ type InventoryHandlerRepository interface {
 type InventoryRepository interface {
 	SaveInventory(*inventory_entity.Inventory) (*inventory_entity.Inventory, map[string]string)
 	GetInventory(int64) (*inventory_entity.Inventory, error)
+	GetAllInventoryInWarehouse(int64) ([]inventory_entity.Inventory, error)
 	UpdateInventory(*inventory_entity.Inventory) (*inventory_entity.Inventory, error)
 	DeleteInventory(int64) (error)
 }

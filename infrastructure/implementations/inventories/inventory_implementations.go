@@ -66,6 +66,19 @@ func (r *InventoryRepo) GetInventory(productID int64) (*inventory_entity.Invento
 }
 
 
+func (r *InventoryRepo) GetAllInventoryInWarehouse(warehouseID int64) ([]inventory_entity.Inventory, error) {
+	var inventory []inventory_entity.Inventory
+
+	err := r.p.DB.Debug().Where("warehouse_id = ?", warehouseID).Find(&inventory).Error
+
+	if err != nil {
+		fmt.Println("Failed to get Inventory")
+	}
+
+	return inventory, nil
+}
+
+
 func (r *InventoryRepo) UpdateInventory(inventory *inventory_entity.Inventory) (*inventory_entity.Inventory, error) {
 	cacheRepo := cache.NewCacheRepository("Redis", r.p)
 

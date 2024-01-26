@@ -18,6 +18,7 @@ func NewInventoryApplication(p *base.Persistence) inventory_repository.Inventory
 type inventoryAppInterface interface {
 	Saveinventory(*inventory_entity.Inventory) (*inventory_entity.Inventory, map[string]string)
 	GetInventory(int64) (*inventory_entity.Inventory, error)
+	GetAllInventoryInWarehouse(int64) ([]inventory_entity.Inventory, error)
 	UpdateInventory(*inventory_entity.Inventory) (*inventory_entity.Inventory, error)
 	DeleteInventory(int64) error
 }
@@ -42,6 +43,12 @@ func (a *InventoryApp) DeleteInventory(InventoryId int64) error {
 	repoInventory := inventories.NewInventoryRepository(a.p)
 	return repoInventory.DeleteInventory(InventoryId)
 }
+
+func (a *InventoryApp) GetAllInventoryInWarehouse(warehouseId int64) ([]inventory_entity.Inventory, error) {
+	repoInventory := inventories.NewInventoryRepository(a.p)
+	return repoInventory.GetAllInventoryInWarehouse(warehouseId)
+}
+
 
 
 

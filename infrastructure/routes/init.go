@@ -12,5 +12,7 @@ func InitRouter(p *base.Persistence) *gin.Engine {
 	p.Automigrate()
 	ProductRoutes(r, p)
 	InventoryRoutes(r, p)
+	WarehouseRoutes(r, p)
+	ImageRoutes(r, p)
 	return r
 }

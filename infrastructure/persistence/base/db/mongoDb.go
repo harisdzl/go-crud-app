@@ -3,15 +3,13 @@ package db
 import (
 	"context"
 	"fmt"
-	"os"
 
+	"github.com/harisquqo/quqo-challenge-1/infrastructure/config"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 func NewMongoDB() (*mongo.Client, error) {
-	DbHost := os.Getenv("DB_MONGO_HOST")
-	// DBName := os.Getenv("DB_MONGO_NAME")
-	// DbCollection := os.Getenv("DB_MONGO_COLLECTION_PRODUCTS")
+	DbHost := config.Configuration.GetString("mongoDb.dev.host")
 
 	// Create a new client and connect to the server
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(DbHost))
