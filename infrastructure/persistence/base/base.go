@@ -9,6 +9,7 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/product_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/warehouse_entity"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base/db"
+	"github.com/opensearch-project/opensearch-go"
 	"github.com/redis/go-redis/v9"
 	storage_go "github.com/supabase-community/storage-go"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -21,6 +22,7 @@ type Persistence struct {
 	DbRedis *redis.Client
 	DbMongo *mongo.Client
 	DbElastic *elasticsearch.Client
+	DbOpensearch *opensearch.Client
 	DbSupabase *storage_go.Client
 }
 
@@ -30,6 +32,7 @@ func NewPersistence() (*Persistence, error) {
 	redisDb, errRedisDb := db.NewRedisDB()
 	mongoDb, errMongoDb := db.NewMongoDB()
 	elasticDb, errElasticDb := db.NewElasticSearchDb()
+	opensearchDb, errOpensearchDb := db.NewOpenSearchDB()
 	supabaseDb, errSupabaseDb := db.NewSupabaseDB()
 
 	if errDatabase != nil {
@@ -48,6 +51,9 @@ func NewPersistence() (*Persistence, error) {
 		log.Fatal(errElasticDb)
 	}
 
+	if errOpensearchDb != nil {
+		log.Fatal(errOpensearchDb)
+	}
 
 	if errSupabaseDb != nil {
 		log.Fatal(errSupabaseDb)
@@ -60,6 +66,7 @@ func NewPersistence() (*Persistence, error) {
 		DbRedis: redisDb,
 		DbMongo: mongoDb,
 		DbElastic: elasticDb,
+		DbOpensearch: opensearchDb,
 		DbSupabase: supabaseDb,
 	}, nil
 

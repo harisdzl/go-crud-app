@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/application"
+	"github.com/harisquqo/quqo-challenge-1/domain/entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/inventory_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/product_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/product_repository"
@@ -21,6 +22,12 @@ type Product struct {
 	productRepo product_repository.ProductRepository
 	Persistence *base.Persistence
 }
+
+type SaveProductResponse struct {
+    Product   product_entity.Product   `json:"product"`
+    Inventory inventory_entity.Inventory `json:"inventory"`
+}
+
 
 
 
@@ -42,39 +49,42 @@ func NewProduct(p *base.Persistence) *Product {
 // @Failure 422 {object} map[string]string "Unprocessable entity"
 // @Router /products [post]
 func (pr *Product) SaveProduct(c *gin.Context) {
-	productForInventory := product_entity.ProductForInventory{}
-	inventory := inventory_entity.Inventory{}
+    responseContextData := entity.ResponseContext{Ctx: c}
+    productForInventory := product_entity.ProductForInventory{}
+    inventory := inventory_entity.Inventory{}
 
+    if err := c.ShouldBindJSON(&productForInventory); err != nil {
+        c.JSON(http.StatusBadRequest,
+            responseContextData.ResponseData(entity.StatusFail, err.Error(), ""))
+        return
+    }
 
-	if err:= c.ShouldBindJSON(&productForInventory); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"invalid_json": "invalid json",
-		})
-		return	
-	}
+    pr.productRepo = application.NewProductApplication(pr.Persistence)
 
-	pr.productRepo = application.NewProductApplication(pr.Persistence)
+    product := product_entity.ConvertProductInventoryToProduct(productForInventory)
+    savedProduct, saveErr := pr.productRepo.SaveProduct(&product)
 
-	product := product_entity.ConvertProductInventoryToProduct(productForInventory)
-	savedProduct, saveErr := pr.productRepo.SaveProduct(&product)
+    if saveErr != nil {
+        c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, "Fail to save product", ""))
+        return
+    }
 
-	if saveErr != nil {
-		c.JSON(http.StatusInternalServerError, saveErr)
-		return
-	}
-	
-	inventory = inventory_entity.ConvertProductInventoryToInventory(productForInventory, product)
-	savedInventory, err := application.NewInventoryApplication(pr.Persistence).SaveInventory(&inventory)
+    inventory = inventory_entity.ConvertProductInventoryToInventory(productForInventory, product)
+    savedInventory, err := application.NewInventoryApplication(pr.Persistence).SaveInventory(&inventory)
 
-	if err != nil {
-		log.Println(err)
-	}
+    if err != nil {
+        log.Println(err)
+    }
 
-	c.JSON(http.StatusCreated, savedProduct)
-	c.JSON(http.StatusCreated, savedInventory)
+    // Create a custom response structure
+    response := SaveProductResponse{
+        Product:   *savedProduct,
+        Inventory: *savedInventory,
+    }
 
+    // Send the custom response as JSON
+    c.JSON(http.StatusCreated, responseContextData.ResponseData(entity.StatusSuccess, "", response))
 }
-
 // func (pr *Product) SaveMultipleProducts(c *gin.Context) {
 // 	var product = []product_entity.Product{}
 
@@ -98,70 +108,71 @@ func (pr *Product) SaveProduct(c *gin.Context) {
 // }
 
 func (pr *Product) GetAllProducts(c *gin.Context) {
+	responseContextData := entity.ResponseContext{Ctx: c}
 	pr.productRepo = application.NewProductApplication(pr.Persistence)
 
 	allProduct, err := pr.productRepo.GetAllProducts()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err.Error())
+		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusError, err.Error(), ""))
 		return
 	}
-	c.JSON(http.StatusOK, allProduct)
+	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "All products obtained", allProduct))
 }
 
 func (pr *Product) GetProduct(c *gin.Context) {
+	responseContextData := entity.ResponseContext{Ctx: c}
+
 	productId, err := strconv.ParseInt((c.Param("product_id")), 10, 64)
 
 	if err != nil {
 		fmt.Println(err)
-		c.JSON(http.StatusBadRequest, err.Error())
+		c.JSON(http.StatusBadRequest, responseContextData.ResponseData(entity.StatusFail, err.Error(), ""))
 		return
 	}
 
 	pr.productRepo = application.NewProductApplication(pr.Persistence)
 
-	product, err := pr.productRepo.GetProduct(productId)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, err.Error())
+	product, getErr := pr.productRepo.GetProduct(productId)
+	if getErr != nil {
+		c.JSON(http.StatusBadRequest, responseContextData.ResponseData(entity.StatusFail, getErr.Error(), ""))
 		return
 	}
-	c.JSON(http.StatusOK, product)
+	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, fmt.Sprintf("Product %v obtained", productId), product))
 }
 
 func (pr *Product) DeleteProduct(c *gin.Context) {
+	responseContextData := entity.ResponseContext{Ctx: c}
 	productId, err := strconv.ParseInt((c.Param("product_id")), 10, 64)
 
 	if err != nil {
 		fmt.Println(err)
-		c.JSON(http.StatusBadRequest, err.Error())
+		c.JSON(http.StatusBadRequest, responseContextData.ResponseData(entity.StatusFail, err.Error(), ""))
 		return
 	}
 	pr.productRepo = application.NewProductApplication(pr.Persistence)
-
 
 	deleteErr := pr.productRepo.DeleteProduct(productId)
 	deleteInventoryErr := application.NewInventoryApplication(pr.Persistence).DeleteInventory(productId)
 	if deleteErr != nil {
-		c.JSON(http.StatusInternalServerError, deleteErr.Error())
+		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusError, deleteErr.Error(), ""))
 		return
 	}
 
 	if deleteInventoryErr != nil {
-		c.JSON(http.StatusInternalServerError, deleteInventoryErr.Error())
+		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusError, deleteInventoryErr.Error(), ""))
 		return
 	}
 
-	
-
-	c.JSON(http.StatusOK, "Product and inventory deleted")
-
+	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess,fmt.Sprintf("Product %v and its inventory deleted", productId), ""))
 }
 
 func (pr *Product) UpdateProduct(c *gin.Context) {
+	responseContextData := entity.ResponseContext{Ctx: c}
 	productId, err := strconv.ParseInt(c.Param("product_id"), 10, 64)
-	
+
 	if err != nil {
 		fmt.Println(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
+		c.JSON(http.StatusBadRequest, responseContextData.ResponseData(entity.StatusFail, "Invalid product ID", ""))
 		return
 	}
 
@@ -170,58 +181,55 @@ func (pr *Product) UpdateProduct(c *gin.Context) {
 
 	existingProduct, err := pr.productRepo.GetProduct(productId)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
+		c.JSON(http.StatusNotFound, responseContextData.ResponseData(entity.StatusFail, "Product not found", ""))
 		return
 	}
 
 	// Bind the JSON request body to the existing product
 	if err := c.ShouldBindJSON(&existingProduct); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Invalid JSON"})
+		c.JSON(http.StatusUnprocessableEntity, responseContextData.ResponseData(entity.StatusFail, "Invalid JSON", ""))
 		return
 	}
 
 	pr.productRepo = application.NewProductApplication(pr.Persistence)
-
 
 	// Update the product
 	updatedProduct, updateErr := pr.productRepo.UpdateProduct(existingProduct)
 	if updateErr != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": updateErr.Error()})
+		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, updateErr.Error(), ""))
 		return
 	}
 
-	c.JSON(http.StatusOK, updatedProduct)
+	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "Product updated succesfully", updatedProduct))
 }
 
-
 func (pr *Product) SearchProduct(c *gin.Context) {
+	responseContextData := entity.ResponseContext{Ctx: c}
 	var productsName = c.Query("name")
 
-    if productsName == "" {
-        c.JSON(http.StatusOK, gin.H{})
-        return
-    }
+	if productsName == "" {
+		c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "", gin.H{}))
+		return
+	}
 	pr.productRepo = application.NewProductApplication(pr.Persistence)
 
 	products, searchErr := pr.productRepo.SearchProduct(productsName)
 	if searchErr != nil {
-		c.JSON(http.StatusInternalServerError, searchErr.Error())
+		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, searchErr.Error(), ""))
 		return
 	} else if len(products) == 0 {
-		c.JSON(http.StatusOK, "No such product found")
+		c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "No such product found", ""))
 		return
 	}
 
-	c.JSON(http.StatusOK, products)
+	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "", products))
 }
-
 
 func (pr *Product) UpdateProductSearchDB() {
 	pr.productRepo = application.NewProductApplication(pr.Persistence)
 	updateErr := pr.productRepo.UpdateProductsInSearchDB()
 
 	if updateErr != nil {
-		fmt.Println("fail to update products in mongbodb")
-
+		log.Println(updateErr)
 	}
 }

@@ -9,6 +9,6 @@ type ImageRepository interface {
 	GetImage(int64) (*image_entity.Image, error)
 	GetAllImagesOfProduct(int64) ([]image_entity.Image, error)
 	UpdateImage(*image_entity.Image) (*image_entity.Image, error)
-	DeleteImage(int64) error
+	DeleteImage(string, string) error
 	UpdateImageURL(string, *image_entity.Image) (*image_entity.Image)
 }

@@ -18,7 +18,7 @@ type supabaseRepo struct {
 
 func (s supabaseRepo) SaveFile(file multipart.File, fileId string, fileBucket string) (string, error) {
 	filePath := fmt.Sprintf("%v", fileId)
-	imageType := "image/png, image/jpeg"
+	imageType := "image/png"
 	imageTypePointer := &imageType
 	fileOptions := storage_go.FileOptions{
 		ContentType: imageTypePointer, 
@@ -39,8 +39,15 @@ func (s supabaseRepo) SaveFile(file multipart.File, fileId string, fileBucket st
 
 
 // TODO
-func (s supabaseRepo) DeleteFile(productId uint, collectionName string, updatedFields interface{}) (error) {
-	return nil
+func (s supabaseRepo) DeleteFile(bucketId string, fileName string) (error) {
+	response, err := s.p.DbSupabase.RemoveFile(bucketId, []string{fileName})
+	if err != nil {
+		log.Println(err)
+	}
+
+	log.Println(response) 
+	
+	return err
 }
 
 

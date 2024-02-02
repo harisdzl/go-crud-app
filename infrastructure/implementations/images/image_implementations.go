@@ -3,10 +3,13 @@ package images
 import (
 	"errors"
 	"fmt"
+	"log"
+	"strconv"
 	"time"
 
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/image_entity"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/cache"
+	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/storage"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 	"gorm.io/gorm"
 )
@@ -93,9 +96,10 @@ func (r *ImageRepo) UpdateImage(image *image_entity.Image) (*image_entity.Image,
 	return image, nil
 }
 
-func (r *ImageRepo) DeleteImage(imageId int64) error {
+func (r *ImageRepo) DeleteImage(bucketId string, fileName string) error {
 	var image *image_entity.Image	
 
+	imageId, _ := strconv.ParseUint(fileName, 10, 64)
 	err := r.p.DB.Debug().Where("id = ?", imageId).Delete(&image).Error
 	if err != nil {
 		return err
@@ -109,10 +113,11 @@ func (r *ImageRepo) DeleteImage(imageId int64) error {
 		return errors.New("database error, please try again")
 	}
 
-	fileName := fmt.Sprint(image.ID)
-	_, deleteErr := r.p.DbSupabase.RemoveFile("images", []string{fileName})
+	storageRepo := storage.NewStorageRepository("Supabase", r.p)
 
+	deleteErr := storageRepo.DeleteFile("images", fmt.Sprint(image.ID))
 	if deleteErr != nil {
+		log.Println(deleteErr)
 		return errors.New("Supabase error, please try again")
 	}
 	return nil

@@ -14,7 +14,7 @@ type ProductForInventory struct {
 	Description string `gorm:"size:255;not null;" json:"description"`
 	Price float64 `gorm:"type:numeric;not null;" json:"price"`
 	Category string `gorm:"size:100;not null;" json:"category"`
-	WarehouseID uint64 `gorm:"size:100;not null;" json:"warehouseID"`
+	WarehouseID uint64 `gorm:"size:100;not null;" json:"warehouse_id"`
 	Stock int `gorm:"size:255;not null;" json:"stock"`
 }
 

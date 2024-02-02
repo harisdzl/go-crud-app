@@ -20,7 +20,7 @@ type imageAppInterface interface {
 	GetImage(int64) (*image_entity.Image, error)
 	GetAllImagesOfProduct(int64) ([]image_entity.Image, error)
 	UpdateImage(*image_entity.Image) (*image_entity.Image, error)
-	DeleteImage(int64) error
+	DeleteImage(string, string) error
 	UpdateImageURL(string, *image_entity.Image) (*image_entity.Image)
 }
 
@@ -48,9 +48,9 @@ func (a *ImageApp) UpdateImage(image *image_entity.Image) (*image_entity.Image, 
 }
 
 
-func (a *ImageApp) DeleteImage(imageId int64) (error) {
+func (a *ImageApp) DeleteImage(bucketId string, fileName string) (error) {
 	repoImage := images.NewImageRepository(a.p)
-	return repoImage.DeleteImage(imageId)
+	return repoImage.DeleteImage(bucketId, fileName)
 }
 
 func (a *ImageApp) UpdateImageURL(url string, image *image_entity.Image) (*image_entity.Image) {

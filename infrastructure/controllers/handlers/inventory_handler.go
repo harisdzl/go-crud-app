@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/application"
+	"github.com/harisquqo/quqo-challenge-1/domain/entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/inventory_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 )
@@ -27,61 +28,60 @@ func NewInventory(p *base.Persistence) *Inventory {
 	}
 }
 
-
-func (in *Inventory) GetInventory(c *gin.Context) {
+func (inv *Inventory) GetInventory(c *gin.Context) {
+	responseContextData := entity.ResponseContext{Ctx: c}
 	productID, err := strconv.ParseInt((c.Param("product_id")), 10, 64)
 
 	if err != nil {
 		fmt.Println(err)
-		c.JSON(http.StatusBadRequest, err.Error())
+		c.JSON(http.StatusBadRequest, responseContextData.ResponseData(entity.StatusFail, err.Error(), ""))
 		return
 	}
 
-	in.inventoryHandlerRepo = application.NewInventoryApplication(in.Persistence)
+	inv.inventoryHandlerRepo = application.NewInventoryApplication(inv.Persistence)
 
-	inventory, err := in.inventoryHandlerRepo.GetInventory(productID)
+	inventory, err := inv.inventoryHandlerRepo.GetInventory(productID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err.Error())
+		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, err.Error(), ""))
 		return
 	}
-	c.JSON(http.StatusOK, inventory)
+
+	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, fmt.Sprintf("Inventory for product %v obtained", productID), inventory))
 }
 
-
-
-func (in *Inventory) UpdateInventory(c *gin.Context) {
+func (inv *Inventory) UpdateInventory(c *gin.Context) {
+	responseContextData := entity.ResponseContext{Ctx: c}
 	productIDofInventory, err := strconv.ParseInt(c.Param("product_id"), 10, 64)
-	
+
 	if err != nil {
 		fmt.Println(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
+		c.JSON(http.StatusBadRequest, responseContextData.ResponseData(entity.StatusFail, "Invalid product ID", ""))
 		return
 	}
 
 	// Check if the inventory exists
-	in.inventoryHandlerRepo = application.NewInventoryApplication(in.Persistence)
+	inv.inventoryHandlerRepo = application.NewInventoryApplication(inv.Persistence)
 
-	existinginventory, err := in.inventoryHandlerRepo.GetInventory(productIDofInventory)
+	existingInventory, err := inv.inventoryHandlerRepo.GetInventory(productIDofInventory)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "inventory not found"})
+		c.JSON(http.StatusNotFound, responseContextData.ResponseData(entity.StatusFail, "Inventory not found", ""))
 		return
 	}
 
 	// Bind the JSON request body to the existing inventory
-	if err := c.ShouldBindJSON(&existinginventory); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Invalid JSON"})
+	if err := c.ShouldBindJSON(&existingInventory); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, responseContextData.ResponseData(entity.StatusFail, "Invalid JSON", ""))
 		return
 	}
 
-	in.inventoryHandlerRepo = application.NewInventoryApplication(in.Persistence)
-
+	inv.inventoryHandlerRepo = application.NewInventoryApplication(inv.Persistence)
 
 	// Update the inventory
-	updatedinventory, updateErr := in.inventoryHandlerRepo.UpdateInventory(existinginventory)
+	updatedInventory, updateErr := inv.inventoryHandlerRepo.UpdateInventory(existingInventory)
 	if updateErr != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": updateErr.Error()})
+		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, updateErr.Error(), ""))
 		return
 	}
 
-	c.JSON(http.StatusOK, updatedinventory)
+	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "Inventory updated successfully", updatedInventory))
 }
