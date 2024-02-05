@@ -116,7 +116,10 @@ func (pr *Product) GetAllProducts(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusError, err.Error(), ""))
 		return
 	}
-	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "All products obtained", allProduct))
+	results := map[string]interface{}{
+		"results" : allProduct,
+	}
+	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "All products obtained", results))
 }
 
 func (pr *Product) GetProduct(c *gin.Context) {
@@ -152,18 +155,12 @@ func (pr *Product) DeleteProduct(c *gin.Context) {
 	pr.productRepo = application.NewProductApplication(pr.Persistence)
 
 	deleteErr := pr.productRepo.DeleteProduct(productId)
-	deleteInventoryErr := application.NewInventoryApplication(pr.Persistence).DeleteInventory(productId)
 	if deleteErr != nil {
 		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusError, deleteErr.Error(), ""))
 		return
 	}
 
-	if deleteInventoryErr != nil {
-		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusError, deleteInventoryErr.Error(), ""))
-		return
-	}
-
-	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess,fmt.Sprintf("Product %v and its inventory deleted", productId), ""))
+	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess,fmt.Sprintf("Product %v has been deleted", productId), ""))
 }
 
 func (pr *Product) UpdateProduct(c *gin.Context) {
@@ -221,8 +218,10 @@ func (pr *Product) SearchProduct(c *gin.Context) {
 		c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "No such product found", ""))
 		return
 	}
-
-	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "", products))
+	results := map[string]interface{}{
+		"results" : products,
+	}
+	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "", results))
 }
 
 func (pr *Product) UpdateProductSearchDB() {

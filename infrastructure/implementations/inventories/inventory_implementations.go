@@ -99,7 +99,7 @@ func (r *InventoryRepo) UpdateInventory(inventory *inventory_entity.Inventory) (
 func (r *InventoryRepo) DeleteInventory(id int64) error {
 	var inventory inventory_entity.Inventory	
 
-	err := r.p.DB.Debug().Where("product_id = ?", id).Delete(inventory).Error
+	err := r.p.DB.Debug().Where("product_id = ?", id).Delete(&inventory).Error
 	if err != nil {
 		return err
 	}

@@ -1,9 +1,9 @@
-package warehouse_entity
+package customer_entity
 
 import "github.com/harisquqo/quqo-challenge-1/domain/entity"
 
 
-type Warehouse struct {
+type Customer struct {
 	entity.BaseModelWDelete
 	ID uint64 `gorm:"primary_key;not null;" json:"id"`
 	Name string `gorm:"size:255;not null;" json:"name"`

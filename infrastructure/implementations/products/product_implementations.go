@@ -31,7 +31,7 @@ var _ product_repository.ProductRepository = &ProductRepo{}
 func (r *ProductRepo) SaveProduct(product *product_entity.Product) (*product_entity.Product, map[string]string) {
 
 	cacheRepo := cache.NewCacheRepository("Redis", r.p)
-	searchRepo := search.NewSearchRepository("OpenSearch", r.p)
+	searchRepo := search.NewSearchRepository("Mongo", r.p)
 
 	dbErr := map[string]string{}
 	err := r.p.DB.Debug().Create(&product).Error
@@ -127,7 +127,7 @@ func (r *ProductRepo) GetAllProducts() ([]product_entity.Product, error) {
 
 func (r *ProductRepo) UpdateProduct(product *product_entity.Product) (*product_entity.Product, error) {
 	cacheRepo := cache.NewCacheRepository("Redis", r.p)
-	// searchRepo := search.NewSearchRepository("OpenSearch", r.p)
+	// searchRepo := search.NewSearchRepository("Mongo", r.p)
 	// collectionName := "products"
 
 	err := r.p.DB.Debug().Where("id = ?", product.ID).Updates(&product).Error
@@ -157,10 +157,10 @@ func (r *ProductRepo) UpdateProduct(product *product_entity.Product) (*product_e
 
 func (r *ProductRepo) DeleteProduct(id int64) error {
 	var product product_entity.Product
-	searchRepo := search.NewSearchRepository("OpenSearch", r.p)
+	searchRepo := search.NewSearchRepository("Mongo", r.p)
 	collectionName := "products"
 	fieldName := "id"
-	err := r.p.DB.Debug().Where("id = ?", id).Delete(product).Error
+	err := r.p.DB.Debug().Where("id = ?", id).Delete(&product).Error
 	
 	searchErr := searchRepo.DeleteSingleDoc(fieldName, collectionName, id)
 	cacheRepo := cache.NewCacheRepository("Redis", r.p)
@@ -179,7 +179,7 @@ func (r *ProductRepo) DeleteProduct(id int64) error {
 
 func (r *ProductRepo) SearchProduct(name string) ([]product_entity.Product, error) {
 
-	searchRepo := search.NewSearchRepository("OpenSearch", r.p)
+	searchRepo := search.NewSearchRepository("Mongo", r.p)
 	indexName := "products"
 
 	// Extract the results from the cursor
@@ -200,7 +200,7 @@ func (r *ProductRepo) SearchProduct(name string) ([]product_entity.Product, erro
 
 
 func (r *ProductRepo) UpdateProductsInSearchDB() error {
-	searchRepo := search.NewSearchRepository("OpenSearch", r.p)
+	searchRepo := search.NewSearchRepository("Mongo", r.p)
 	collectionName := "products"
 
 	products, err := r.GetAllProducts()

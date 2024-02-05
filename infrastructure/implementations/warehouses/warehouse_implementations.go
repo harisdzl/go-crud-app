@@ -124,7 +124,7 @@ func (r *WarehouseRepo) DeleteWarehouse(id int64) error {
 	searchRepo := search.NewSearchRepository("Mongo", r.p)
 	collectionName := "warehouses"
 	fieldName := "id"
-	err := r.p.DB.Debug().Where("id = ?", id).Delete(warehouse).Error
+	err := r.p.DB.Debug().Where("id = ?", id).Delete(&warehouse).Error
 	
 	searchErr := searchRepo.DeleteSingleDoc(fieldName, collectionName, id)
 	cacheRepo := cache.NewCacheRepository("Redis", r.p)

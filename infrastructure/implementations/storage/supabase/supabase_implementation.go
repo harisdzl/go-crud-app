@@ -38,18 +38,18 @@ func (s supabaseRepo) SaveFile(file multipart.File, fileId string, fileBucket st
 }
 
 
-// TODO
-func (s supabaseRepo) DeleteFile(bucketId string, fileName string) (error) {
+func (s supabaseRepo) DeleteFile(bucketId string, fileName string) error {
 	response, err := s.p.DbSupabase.RemoveFile(bucketId, []string{fileName})
 	if err != nil {
 		log.Println(err)
+		return err // Return the actual error
 	}
 
-	log.Println(response) 
-	
-	return err
-}
+	log.Println(response)
 
+	// If there is no error, return nil
+	return nil
+}
 
 
 

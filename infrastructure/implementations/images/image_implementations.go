@@ -68,10 +68,11 @@ func (r *ImageRepo) GetImage(imageId int64) (*image_entity.Image, error) {
 
 func (r *ImageRepo) GetAllImagesOfProduct(productId int64) ([]image_entity.Image, error) {
 	var image []image_entity.Image
-
+	
 	err := r.p.DB.Debug().Where("product_id = ?", productId).Find(&image).Error
 
 	if err != nil {
+		log.Println(err)
 		fmt.Println("Failed to get Image")
 	}
 
@@ -98,8 +99,16 @@ func (r *ImageRepo) UpdateImage(image *image_entity.Image) (*image_entity.Image,
 
 func (r *ImageRepo) DeleteImage(bucketId string, fileName string) error {
 	var image *image_entity.Image	
-
 	imageId, _ := strconv.ParseUint(fileName, 10, 64)
+		
+	storageRepo := storage.NewStorageRepository("Supabase", r.p)
+
+	deleteErr := storageRepo.DeleteFile("images", fileName)
+	if deleteErr != nil {
+		log.Println(deleteErr)
+		return errors.New("Supabase error, please try again")
+	}
+
 	err := r.p.DB.Debug().Where("id = ?", imageId).Delete(&image).Error
 	if err != nil {
 		return err
@@ -113,12 +122,7 @@ func (r *ImageRepo) DeleteImage(bucketId string, fileName string) error {
 		return errors.New("database error, please try again")
 	}
 
-	storageRepo := storage.NewStorageRepository("Supabase", r.p)
 
-	deleteErr := storageRepo.DeleteFile("images", fmt.Sprint(image.ID))
-	if deleteErr != nil {
-		log.Println(deleteErr)
-		return errors.New("Supabase error, please try again")
-	}
+
 	return nil
 }

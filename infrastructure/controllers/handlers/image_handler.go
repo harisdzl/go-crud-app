@@ -36,7 +36,7 @@ func (im *Image) SaveImage(c *gin.Context) {
 	rawImage := image_entity.Image{}
 
 	rawImage.Caption = c.PostForm("caption")
-	rawImage.ProductID = c.PostForm("productID")
+	rawImage.ProductID, _ = strconv.ParseInt(c.PostForm("product_id"), 10, 64) 
 
 	image, imageErr := c.FormFile("image")
 	openedImage, openImageErr := image.Open()
@@ -60,7 +60,7 @@ func (im *Image) SaveImage(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, processedImageErr["db_error"], ""))
 		return
 	}
-
+	
 	storage := storage.NewStorageRepository("Supabase", im.Persistence)
 	publicURL, saveFileErr := storage.SaveFile(openedImage, fmt.Sprint(processedImage.ID), "images")
 
@@ -106,14 +106,17 @@ func (im *Image) GetAllImagesOfProduct(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, err.Error(), ""))
 		return
 	}
-	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, fmt.Sprintf("All images for product %v obtained", productID), allImages))
+
+	results := map[string]interface{}{
+		"results" : allImages,
+	}
+	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, fmt.Sprintf("All images for product %v obtained", productID), results))
 }
 
 func (im *Image) DeleteImage(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	im.ImageRepo = application.NewImageApplication(im.Persistence)
 
-	log.Println(c.Param("image_id"))
 	deleteErr := im.ImageRepo.DeleteImage("images", c.Param("image_id"))
 	if deleteErr != nil {
 		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, deleteErr.Error(), ""))

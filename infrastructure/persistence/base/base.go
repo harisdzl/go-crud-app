@@ -4,8 +4,11 @@ import (
 	"log"
 
 	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/harisquqo/quqo-challenge-1/domain/entity/category_entity"
+	"github.com/harisquqo/quqo-challenge-1/domain/entity/customer_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/image_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/inventory_entity"
+	"github.com/harisquqo/quqo-challenge-1/domain/entity/order_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/product_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/warehouse_entity"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base/db"
@@ -77,5 +80,8 @@ func (s *Persistence) Automigrate() error {
 	return s.DB.AutoMigrate(&product_entity.Product{}, 
 		&inventory_entity.Inventory{}, 
 		&warehouse_entity.Warehouse{}, 
-		&image_entity.Image{})
+		&image_entity.Image{},
+		&category_entity.Category{},
+		&customer_entity.Customer{},
+		&order_entity.Order{})
 }

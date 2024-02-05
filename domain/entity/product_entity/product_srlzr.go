@@ -8,7 +8,7 @@ func ConvertProductInventoryToProduct(productForInventory ProductForInventory) P
 	product.Name = productForInventory.Name
 	product.Description = productForInventory.Description
 	product.Price = productForInventory.Price
-	product.Category = productForInventory.Category
+	product.CategoryID = productForInventory.CategoryID
 
 	return product
 

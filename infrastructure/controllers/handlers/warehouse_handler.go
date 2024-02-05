@@ -91,7 +91,11 @@ func (pr *Warehouse) GetAllWarehouses(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, err.Error(), ""))
 		return
 	}
-	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "All warehouses obtained successfully", allWarehouses))
+
+	results := map[string]interface{}{
+		"results" : allWarehouses,
+	}
+	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "All warehouses obtained successfully", results))
 }
 
 func (pr *Warehouse) GetWarehouse(c *gin.Context) {
@@ -183,16 +187,20 @@ func (pr *Warehouse) SearchWarehouse(c *gin.Context) {
 	}
 	pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence)
 
-	Warehouses, searchErr := pr.WarehouseRepo.SearchWarehouse(WarehousesName)
+	warehouses, searchErr := pr.WarehouseRepo.SearchWarehouse(WarehousesName)
 	if searchErr != nil {
 		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, searchErr.Error(), ""))
 		return
-	} else if len(Warehouses) == 0 {
+	} else if len(warehouses) == 0 {
 		c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "No such Warehouse found", ""))
 		return
 	}
 
-	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "", Warehouses))
+	results := map[string]interface{}{
+		"results" : warehouses,
+	}
+
+	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "", results))
 }
 
 
