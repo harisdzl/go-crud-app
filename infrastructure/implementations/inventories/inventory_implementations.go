@@ -115,3 +115,22 @@ func (r *InventoryRepo) DeleteInventory(id int64) error {
 
 	return nil
 }
+func (r *InventoryRepo) ReduceInventory(id int64) error {
+	var inventory inventory_entity.Inventory	
+
+	err := r.p.DB.Debug().Where("product_id = ?", id).Delete(&inventory).Error
+	if err != nil {
+		return err
+	}
+
+	cacheRepo := cache.NewCacheRepository("Redis", r.p)
+	
+
+
+	cacheRepo.DelKey(fmt.Sprintf("%v_INVENTORY", id))
+	if err != nil {
+		return errors.New("database error, please try again")
+	}
+
+	return nil
+}

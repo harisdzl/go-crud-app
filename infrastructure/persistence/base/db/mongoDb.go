@@ -12,7 +12,9 @@ func NewMongoDB() (*mongo.Client, error) {
 	DbHost := config.Configuration.GetString("mongoDb.dev.host")
 
 	// Create a new client and connect to the server
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(DbHost))
+	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
+	opts := options.Client().ApplyURI(DbHost).SetServerAPIOptions(serverAPI)
+	client, err := mongo.Connect(context.TODO(), opts) 
 	if err != nil {
 		return nil, err
 	}

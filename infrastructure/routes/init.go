@@ -17,5 +17,6 @@ func InitRouter(p *base.Persistence) *gin.Engine {
 	CategoryRoutes(r, p)
 	CustomerRoutes(r, p)
 	OrderRoutes(r, p)
+	OrderedItemRoutes(r, p)
 	return r
 }

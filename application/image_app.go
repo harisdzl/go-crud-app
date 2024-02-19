@@ -15,15 +15,6 @@ func NewImageApplication(p *base.Persistence) image_repository.ImageRepository {
 	return &ImageApp{p}
 }
 
-type imageAppInterface interface {
-	SaveImage(*image_entity.Image) (*image_entity.Image, map[string]string)
-	GetImage(int64) (*image_entity.Image, error)
-	GetAllImagesOfProduct(int64) ([]image_entity.Image, error)
-	UpdateImage(*image_entity.Image) (*image_entity.Image, error)
-	DeleteImage(string, string) error
-	UpdateImageURL(string, *image_entity.Image) (*image_entity.Image)
-}
-
 func (a *ImageApp) SaveImage(image *image_entity.Image) (*image_entity.Image, map[string]string) {
 	repoImage := images.NewImageRepository(a.p)
 	return repoImage.SaveImage(image)

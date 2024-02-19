@@ -15,14 +15,6 @@ func NewCategoryApplication(p *base.Persistence) category_repository.CategoryRep
 	return &CategoryApp{p}
 }
 
-type categoryAppInterface interface {
-	SaveCategory(*category_entity.Category) (*category_entity.Category, map[string]string)
-	GetCategory(int64) (*category_entity.Category, error)
-	GetAllCategories() ([]category_entity.Category, error)
-	GetParentCategories(int64) ([]category_entity.Category, error)
-	UpdateCategory(*category_entity.Category) (*category_entity.Category, error)
-	DeleteCategory(int64) error
-}
 
 func (c *CategoryApp) SaveCategory(category *category_entity.Category) (*category_entity.Category, map[string]string) {
 	repoCategory := categories.NewCategoryRepository(c.p)

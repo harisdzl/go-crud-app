@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -17,7 +18,7 @@ import (
 
 
 type Order struct {
-	OrderRepo order_repository.OrderRepository
+	OrderRepo order_repository.OrderHandlerRepository
 	Persistence *base.Persistence
 }
 
@@ -40,33 +41,31 @@ func NewOrder(p *base.Persistence) *Order {
 // @Failure 400 {object} map[string]string "Invalid JSON"
 // @Failure 422 {object} map[string]string "Unprocessable entity"
 // @Router /Orders [post]
-func (cr Order) SaveOrder(c *gin.Context) {
-	responseContextData := entity.ResponseContext{Ctx: c}
-	order := order_entity.Order{}
+func (or Order) SaveOrder(c *gin.Context) {
+    responseContextData := entity.ResponseContext{Ctx: c}
+    rawOrder := order_entity.RawOrder{}
+    if err := c.ShouldBindJSON(&rawOrder); err != nil {
+		log.Println(err)
+        c.JSON(http.StatusUnprocessableEntity, responseContextData.ResponseData(entity.StatusFail, "Invalid JSON", ""))
+        return
+    }
 
-	if err := c.ShouldBindJSON(&order); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, responseContextData.ResponseData(entity.StatusFail, "Invalid JSON", ""))
-		return
-	}
+	or.OrderRepo = application.NewOrderApplication(or.Persistence)
 
-	cr.OrderRepo = application.NewOrderApplication(cr.Persistence)
+    savedOrder, saveErr := or.OrderRepo.SaveOrderFromRaw(rawOrder)
+    if saveErr != nil {
+        c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, saveErr["db_error"], ""))
+        return
+    }
 
-	savedOrder, saveErr := cr.OrderRepo.SaveOrder(&order)
-
-	if saveErr != nil {
-		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, saveErr["db_error"], ""))
-		return
-	}
-
-	c.JSON(http.StatusCreated, responseContextData.ResponseData(entity.StatusSuccess, "Order saved successfully", savedOrder))
+    c.JSON(http.StatusCreated, responseContextData.ResponseData(entity.StatusSuccess, "Order saved successfully", savedOrder))
 }
 
-
-func (cr Order) GetAllOrders(c *gin.Context) {
+func (or Order) GetAllOrders(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
-	cr.OrderRepo = application.NewOrderApplication(cr.Persistence)
+	or.OrderRepo = application.NewOrderApplication(or.Persistence)
 
-	allOrders, err := cr.OrderRepo.GetAllOrders()
+	allOrders, err := or.OrderRepo.GetAllOrders()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, err.Error(), ""))
 		return
@@ -78,7 +77,7 @@ func (cr Order) GetAllOrders(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "All orders obtained successfully", results))
 }
 
-func (cr Order) GetOrder(c *gin.Context) {
+func (or Order) GetOrder(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	orderID, err := strconv.ParseInt(c.Param("order_id"), 10, 64)
 
@@ -88,9 +87,9 @@ func (cr Order) GetOrder(c *gin.Context) {
 		return
 	}
 
-	cr.OrderRepo = application.NewOrderApplication(cr.Persistence)
+	or.OrderRepo = application.NewOrderApplication(or.Persistence)
 
-	order, err := cr.OrderRepo.GetOrder(orderID)
+	order, err := or.OrderRepo.GetOrder(orderID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, err.Error(), ""))
 		return
@@ -98,19 +97,33 @@ func (cr Order) GetOrder(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, fmt.Sprintf("Order %v obtained", orderID), order))
 }
 
-func (cr Order) DeleteOrder(c *gin.Context) {
+func (or Order) DeleteOrder(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	orderID, err := strconv.ParseInt(c.Param("order_id"), 10, 64)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusBadRequest, responseContextData.ResponseData(entity.StatusFail, err.Error(), ""))
+		return
+	}
+	or.OrderRepo = application.NewOrderApplication(or.Persistence)
 
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(http.StatusBadRequest, responseContextData.ResponseData(entity.StatusFail, err.Error(), ""))
 		return
 	}
-	cr.OrderRepo = application.NewOrderApplication(cr.Persistence)
 
-	deleteErr := cr.OrderRepo.DeleteOrder(orderID)
+	deleteErr := or.OrderRepo.DeleteOrder(orderID)
 	// TODO: when deleting a order, need to delete all the inventory in it
+	orderedItems, orderedItemsErr := application.NewOrderedItemApplication(or.Persistence).GetAllOrderedItemsForOrder(orderID)
+	if orderedItemsErr != nil {	
+		fmt.Println(err)
+		c.JSON(http.StatusBadRequest, responseContextData.ResponseData(entity.StatusFail, err.Error(), ""))
+		return
+	}
+
+	application.NewOrderedItemApplication(or.Persistence).ReverseOrder(orderedItems)
+
 
 	if deleteErr != nil {
 		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, deleteErr.Error(), ""))
@@ -120,7 +133,7 @@ func (cr Order) DeleteOrder(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "Order deleted successfully", ""))
 }
 
-func (cr Order) UpdateOrder(c *gin.Context) {
+func (or Order) UpdateOrder(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	orderID, err := strconv.ParseInt(c.Param("order_id"), 10, 64)
 
@@ -131,9 +144,9 @@ func (cr Order) UpdateOrder(c *gin.Context) {
 	}
 
 	// Check if the Order exists
-	cr.OrderRepo = application.NewOrderApplication(cr.Persistence)
+	or.OrderRepo = application.NewOrderApplication(or.Persistence)
 
-	existingOrder, err := cr.OrderRepo.GetOrder(orderID)
+	existingOrder, err := or.OrderRepo.GetOrder(orderID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, responseContextData.ResponseData(entity.StatusFail, "Order not found", ""))
 		return
@@ -145,10 +158,10 @@ func (cr Order) UpdateOrder(c *gin.Context) {
 		return
 	}
 
-	cr.OrderRepo = application.NewOrderApplication(cr.Persistence)
+	or.OrderRepo = application.NewOrderApplication(or.Persistence)
 
 	// Update the Order
-	updatedOrder, updateErr := cr.OrderRepo.UpdateOrder(existingOrder)
+	updatedOrder, updateErr := or.OrderRepo.UpdateOrder(existingOrder)
 	if updateErr != nil {
 		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, updateErr.Error(), ""))
 		return

@@ -15,14 +15,6 @@ func NewCustomerApplication(p *base.Persistence) customer_repository.CustomerRep
 	return &customerApp{p}
 }
 
-type customerAppInterface interface {
-	Savecustomer(*customer_entity.Customer) (*customer_entity.Customer, map[string]string)
-	Getcustomer(int64) (*customer_entity.Customer, error)
-	GetAllcustomers() ([]customer_entity.Customer, error)
-	UpdateCustomer(*customer_entity.Customer) (*customer_entity.Customer, error)
-	DeleteCustomer(int64) error
-}
-
 func (a *customerApp) SaveCustomer(customer *customer_entity.Customer) (*customer_entity.Customer, map[string]string) {
 	repocustomer := customers.NewCustomerRepository(a.p)
 	return repocustomer.SaveCustomer(customer)

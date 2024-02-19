@@ -1,6 +1,8 @@
 package order_entity
 
-import "github.com/harisquqo/quqo-challenge-1/domain/entity"
+import (
+	"github.com/harisquqo/quqo-challenge-1/domain/entity"
+)
 
 type Order struct {
 	entity.BaseModelWDelete
@@ -10,5 +12,14 @@ type Order struct {
 	TotalCheckout float64 `gorm:"size:255;not null;" json:"total_checkout"` 
 	CustomerID float64 `gorm:"type:numeric;not null;" json:"customer_id"`
 	WarehouseID uint64 `gorm:"size:100;not null;" json:"warehouse_id"`
-	Status int `gorm:"size:255;not null;" json:"status"`
+	Status string `gorm:"size:255;not null;" json:"status"`
+}
+
+
+type RawOrder struct {
+	entity.BaseModelWDelete
+	CustomerID float64 `gorm:"type:numeric;not null;" json:"customer_id"`
+	WarehouseID uint64 `gorm:"size:100;not null;" json:"warehouse_id"`
+	Status string `gorm:"size:255;not null;" json:"status"`
+	Products  map[string]int64 `json:"products"`
 }

@@ -1,8 +1,10 @@
 package application
 
 import (
+	"github.com/harisquqo/quqo-challenge-1/domain/entity/inventory_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/product_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/product_repository"
+	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/inventories"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/products"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 )
@@ -11,30 +13,43 @@ type productApp struct {
 	p *base.Persistence
 }
 
-func NewProductApplication(p *base.Persistence) product_repository.ProductRepository {
+func NewProductApplication(p *base.Persistence) product_repository.ProductHandlerRepository {
 	return &productApp{p}
 }
 
-type ProductAppInterface interface {
-	SaveProduct(*product_entity.Product) (*product_entity.Product, map[string]string)
-	// SaveMultipleProducts(*[]product_entity.Product) (*[]product_entity.Product, map[string]string)
-	GetProduct(int64) (*product_entity.Product, error)
-	GetAllProducts() ([]product_entity.Product, error)
-	UpdateProduct(*product_entity.Product) (*product_entity.Product, error)
-	DeleteProduct(int64) error
-	SearchProduct(string) ([]interface{}, error)
-	UpdateProductsInSearchDB() (error)
+func ConvertProductandInventory(productForInventory product_entity.ProductForInventory) (product_entity.Product, inventory_entity.Inventory){
+	var product product_entity.Product
+	var inventory inventory_entity.Inventory
+
+	product.ID = productForInventory.ID
+	product.Name = productForInventory.Name
+	product.Description = productForInventory.Description
+	product.Price = productForInventory.Price
+	product.CategoryID = productForInventory.CategoryID
+
+	inventory.ProductID = product.ID
+	inventory.WarehouseID = productForInventory.WarehouseID
+	inventory.Stock = productForInventory.Stock
+
+	return product, inventory
+
+}
+func (a *productApp) SaveProductAndInventory(productForInventory product_entity.ProductForInventory) (*product_entity.Product, *inventory_entity.Inventory, map[string]string) {
+    product, inventory := ConvertProductandInventory(productForInventory)
+    repoProduct := products.NewProductRepository(a.p)
+    repoInventory := inventories.NewInventoryRepository(a.p)
+    savedProduct, saveErr := repoProduct.SaveProduct(&product)
+    if saveErr != nil {
+        return nil, nil, saveErr
+    }
+    inventory.ProductID = savedProduct.ID // Set ProductID to the ID of the newly created product
+    _, saveInventoryErr := repoInventory.SaveInventory(&inventory)
+    if saveInventoryErr != nil {
+        return nil, nil, saveInventoryErr
+    }
+    return savedProduct, &inventory, nil
 }
 
-func (a *productApp) SaveProduct(product *product_entity.Product) (*product_entity.Product, map[string]string) {
-	repoProduct := products.NewProductRepository(a.p)
-	return repoProduct.SaveProduct(product)
-}
-
-// func (a *productApp) SaveMultipleProducts(productList *[]product_entity.Product) (*[]product_entity.Product, map[string]string) {
-// 	repoProduct := products.NewProductRepository(a.p)
-// 	return repoProduct.SaveMultipleProducts(productList)
-// }
 
 func (a *productApp) GetProduct(productId int64) (*product_entity.Product, error) {
 	repoProduct := products.NewProductRepository(a.p)

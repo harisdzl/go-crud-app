@@ -16,15 +16,6 @@ func NewWarehouseApplication(p *base.Persistence) warehouse_repository.Warehouse
 	return &warehouseApp{p}
 }
 
-type warehouseAppInterface interface {
-	Savewarehouse(*warehouse_entity.Warehouse) (*warehouse_entity.Warehouse, map[string]string)
-	Getwarehouse(int64) (*warehouse_entity.Warehouse, error)
-	GetAllwarehouses() ([]warehouse_entity.Warehouse, error)
-	Updatewarehouse(*warehouse_entity.Warehouse) (*warehouse_entity.Warehouse, error)
-	Deletewarehouse(int64) error
-	Searchwarehouse(string) ([]interface{}, error)
-	UpdatewarehousesInSearchDB() (error)
-}
 
 func (a *warehouseApp) SaveWarehouse(warehouse *warehouse_entity.Warehouse) (*warehouse_entity.Warehouse, map[string]string) {
 	repowarehouse := warehouses.NewWareHouseRepository(a.p)

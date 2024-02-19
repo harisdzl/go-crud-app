@@ -19,7 +19,7 @@ import (
 
 
 type Product struct {
-	productRepo product_repository.ProductRepository
+	productRepo product_repository.ProductHandlerRepository
 	Persistence *base.Persistence
 }
 
@@ -51,7 +51,6 @@ func NewProduct(p *base.Persistence) *Product {
 func (pr *Product) SaveProduct(c *gin.Context) {
     responseContextData := entity.ResponseContext{Ctx: c}
     productForInventory := product_entity.ProductForInventory{}
-    inventory := inventory_entity.Inventory{}
 
     if err := c.ShouldBindJSON(&productForInventory); err != nil {
         c.JSON(http.StatusBadRequest,
@@ -61,28 +60,20 @@ func (pr *Product) SaveProduct(c *gin.Context) {
 
     pr.productRepo = application.NewProductApplication(pr.Persistence)
 
-    product := product_entity.ConvertProductInventoryToProduct(productForInventory)
-    savedProduct, saveErr := pr.productRepo.SaveProduct(&product)
+    // Call the application layer method to save the product
+	savedProduct, savedInventory, saveErr := pr.productRepo.SaveProductAndInventory(productForInventory)
+	if saveErr != nil {
+		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, "Fail to save product", ""))
+		return
+	}
 
-    if saveErr != nil {
-        c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, "Fail to save product", ""))
-        return
-    }
-
-    inventory = inventory_entity.ConvertProductInventoryToInventory(productForInventory, product)
-    savedInventory, err := application.NewInventoryApplication(pr.Persistence).SaveInventory(&inventory)
-
-    if err != nil {
-        log.Println(err)
-    }
-
-    // Create a custom response structure
-    response := SaveProductResponse{
+	response := SaveProductResponse{
         Product:   *savedProduct,
         Inventory: *savedInventory,
     }
 
-    // Send the custom response as JSON
+	
+    // Send the saved product as JSON response
     c.JSON(http.StatusCreated, responseContextData.ResponseData(entity.StatusSuccess, "", response))
 }
 // func (pr *Product) SaveMultipleProducts(c *gin.Context) {

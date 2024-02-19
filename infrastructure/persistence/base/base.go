@@ -3,12 +3,12 @@ package base
 import (
 	"log"
 
-	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/category_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/customer_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/image_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/inventory_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/order_entity"
+	"github.com/harisquqo/quqo-challenge-1/domain/entity/ordereditem_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/product_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/warehouse_entity"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base/db"
@@ -24,7 +24,6 @@ type Persistence struct {
 	DB *gorm.DB
 	DbRedis *redis.Client
 	DbMongo *mongo.Client
-	DbElastic *elasticsearch.Client
 	DbOpensearch *opensearch.Client
 	DbSupabase *storage_go.Client
 }
@@ -34,7 +33,6 @@ func NewPersistence() (*Persistence, error) {
 	database, errDatabase := db.NewDB()
 	redisDb, errRedisDb := db.NewRedisDB()
 	mongoDb, errMongoDb := db.NewMongoDB()
-	elasticDb, errElasticDb := db.NewElasticSearchDb()
 	opensearchDb, errOpensearchDb := db.NewOpenSearchDB()
 	supabaseDb, errSupabaseDb := db.NewSupabaseDB()
 
@@ -48,10 +46,6 @@ func NewPersistence() (*Persistence, error) {
 
 	if errMongoDb != nil {
 		log.Fatal(errMongoDb)
-	}
-
-	if errElasticDb != nil {
-		log.Fatal(errElasticDb)
 	}
 
 	if errOpensearchDb != nil {
@@ -68,7 +62,6 @@ func NewPersistence() (*Persistence, error) {
 		DB: database.DB,
 		DbRedis: redisDb,
 		DbMongo: mongoDb,
-		DbElastic: elasticDb,
 		DbOpensearch: opensearchDb,
 		DbSupabase: supabaseDb,
 	}, nil
@@ -83,5 +76,6 @@ func (s *Persistence) Automigrate() error {
 		&image_entity.Image{},
 		&category_entity.Category{},
 		&customer_entity.Customer{},
-		&order_entity.Order{})
+		&order_entity.Order{},
+		&ordereditem_entity.OrderedItem{})
 }

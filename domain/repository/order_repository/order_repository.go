@@ -11,3 +11,13 @@ type OrderRepository interface {
 	UpdateOrder(*order_entity.Order) (*order_entity.Order, error)
 	DeleteOrder(int64) error
 }
+
+
+
+type OrderHandlerRepository interface {
+	SaveOrderFromRaw(order_entity.RawOrder) (*order_entity.Order, map[string]string)
+	GetOrder(int64) (*order_entity.Order, error)
+	GetAllOrders() ([]order_entity.Order, error)
+	UpdateOrder(*order_entity.Order) (*order_entity.Order, error)
+	DeleteOrder(int64) error
+}
