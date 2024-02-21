@@ -22,21 +22,35 @@ func NewOrderRepository(p *base.Persistence) *OrderRepo {
 
 var _ order_repository.OrderRepository = &OrderRepo{}
 
-func (o *OrderRepo) SaveOrder(order *order_entity.Order) (*order_entity.Order, map[string]string) {
-
-	cacheRepo := cache.NewCacheRepository("Redis", o.p)
-
-	dbErr := map[string]string{}
-	err := o.p.DB.Debug().Create(&order).Error
+func (o *OrderRepo) SaveOrder(tx *gorm.DB, order *order_entity.Order) (*order_entity.Order, error) {
+	if tx == nil {
+		var errTx error
+		tx := o.p.DB.Begin()
+		if tx.Error != nil {
+			return nil, errors.New("failed to start transaction")
+		}
+	
+		// Defer rollback in case of panic
+		defer func() {
+			if r := recover(); r != nil {
+				tx.Rollback()
+			} else if errTx != nil {
+				tx.Rollback()
+			} else {
+				errC := tx.Commit().Error
+				if errC != nil {
+					tx.Rollback()
+				}
+			}
+		}()
+	}
+	err := tx.Debug().Create(&order).Error
 	if err != nil {
 		fmt.Println("Failed to create order")
 		fmt.Println(err)
-		dbErr["db_error"] = "database error"
-		return nil, dbErr
+		return nil, err
 	}
 
-	cacheRepo.SetKey(fmt.Sprintf("%v_ORDER", order.ID), order, time.Minute * 15)
-	
 	return order, nil
 }
 

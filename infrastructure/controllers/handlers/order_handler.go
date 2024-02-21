@@ -51,10 +51,10 @@ func (or Order) SaveOrder(c *gin.Context) {
     }
 
 	or.OrderRepo = application.NewOrderApplication(or.Persistence)
-
     savedOrder, saveErr := or.OrderRepo.SaveOrderFromRaw(rawOrder)
+	
     if saveErr != nil {
-        c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, saveErr["db_error"], ""))
+        c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, saveErr.Error(), ""))
         return
     }
 

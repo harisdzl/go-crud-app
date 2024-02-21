@@ -1,11 +1,15 @@
 package application
 
 import (
+	"errors"
 	"log"
 	"strconv"
 
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/order_entity"
+	"github.com/harisquqo/quqo-challenge-1/domain/entity/ordereditem_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/order_repository"
+	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/inventories"
+	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/ordereditems"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/orders"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/products"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
@@ -34,7 +38,28 @@ func (a *OrderApp) CalculateTotalCost(rawOrder order_entity.RawOrder) float64 {
 }
 
 
-func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_entity.Order, map[string]string) {
+func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_entity.Order, error) {
+	var errTx error
+
+	tx := a.p.DB.Begin()
+    if tx.Error != nil {
+        return nil, errors.New("failed to start transaction")
+    }
+
+    // Defer rollback in case of panic
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        } else if errTx != nil {
+			tx.Rollback()
+		} else {
+			errC := tx.Commit().Error
+			if errC != nil {
+				tx.Rollback()
+			}
+		}
+    }()
+	
 	// Create an order entity
 	order := order_entity.Order{
 		CustomerID:  rawOrder.CustomerID,
@@ -52,15 +77,45 @@ func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_enti
 
 	// Save the order
 	repoOrder := orders.NewOrderRepository(a.p)
-	savedOrder, err := repoOrder.SaveOrder(&order)
+	savedOrder, err := repoOrder.SaveOrder(tx, &order)
 
-	// Call orderedItem application function
-	orderedItemApp := NewOrderedItemApplication(a.p)
-	orderedItemApp.SaveRawOrderItems(rawOrder.Products, int64(order.ID))
-	
 	if err != nil {
-		// Handle error if needed
-		return nil, map[string]string{"error": "failed to save order"}
+		errTx = err
+        return nil, errTx
+    }
+
+	repoOrderedItem := ordereditems.NewOrderedItemsRepository(a.p)
+	for productID, quantity := range rawOrder.Products {
+		productId, _ := strconv.ParseInt(productID, 10, 64)
+
+		product, productErr := products.NewProductRepository(a.p).GetProduct(productId)
+		if productErr != nil {
+			errTx = err
+			return nil, productErr
+		}
+
+		orderedItem := ordereditem_entity.OrderedItem{
+			OrderID:    int64(order.ID), // Assign the order ID to the ordered item
+			ProductID:  productId,
+			Quantity:   quantity,
+			UnitPrice:  product.Price,
+			TotalPrice: product.Price * float64(quantity),
+		}
+
+		inventoryRepo := inventories.NewInventoryRepository(a.p)
+		reduceInventoryErr := inventoryRepo.ReduceInventory(tx, productId, quantity)
+
+		if reduceInventoryErr != nil {
+			errTx = reduceInventoryErr
+			return nil, errTx
+		}
+		// Save ordered item
+		_, err := repoOrderedItem.SaveOrderedItem(tx, &orderedItem)
+
+		if err != nil {
+			errTx = err
+			return nil, errTx
+		}
 	}
 
 	return savedOrder, nil

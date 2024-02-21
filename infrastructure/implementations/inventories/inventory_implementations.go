@@ -3,6 +3,7 @@ package inventories
 import (
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/inventory_entity"
@@ -115,22 +116,70 @@ func (r *InventoryRepo) DeleteInventory(id int64) error {
 
 	return nil
 }
-func (r *InventoryRepo) ReduceInventory(id int64) error {
-	var inventory inventory_entity.Inventory	
 
-	err := r.p.DB.Debug().Where("product_id = ?", id).Delete(&inventory).Error
-	if err != nil {
-		return err
+func (r *InventoryRepo) ReduceInventory(tx *gorm.DB, id int64, quantityOrdered int64) error {
+	// Update inventory stock directly in the database
+	if tx == nil {
+		var errTx error
+		tx := r.p.DB.Begin()
+		if tx.Error != nil {
+			return errors.New("Failed to start transaction")
+		}
+	
+		// Defer rollback in case of panic
+		defer func() {
+			if r := recover(); r != nil {
+				tx.Rollback()
+			} else if errTx != nil {
+				tx.Rollback()
+			} else {
+				errC := tx.Commit().Error
+				if errC != nil {
+					tx.Rollback()
+				}
+			}
+		}()
+	}
+	inventory, invErr := r.GetInventory(id)
+	if invErr != nil {
+		return invErr
 	}
 
-	cacheRepo := cache.NewCacheRepository("Redis", r.p)
-	
+	if inventory.Stock < int(quantityOrdered) {
+		return errors.New(fmt.Sprintf("Not enough stock. Maximum quantity is %v", inventory.Stock))
+	}
+	result := tx.Model(&inventory).
+		Update("stock", gorm.Expr("stock - ?", quantityOrdered))
+	if result.Error != nil {
+		return result.Error
+	}
 
+	// Check if any rows were affected
+	if result.RowsAffected == 0 {
+		return errors.New("inventory not found")
+	}
 
-	cacheRepo.DelKey(fmt.Sprintf("%v_INVENTORY", id))
-	if err != nil {
-		return errors.New("database error, please try again")
+	// Check if the stock is negative after reduction
+	if result.RowsAffected < 0 {
+		log.Println("Not enough stock")
+		return errors.New("not enough stock")
 	}
 
 	return nil
+}
+
+func (r *InventoryRepo) IncreaseInventory(productId int64, quantityToAdd int64) error {
+    // Update inventory stock directly in the database
+    result := r.p.DB.Model(&inventory_entity.Inventory{}).Where("product_id = ?", productId).
+        Update("stock", gorm.Expr("stock + ?", quantityToAdd))
+    if result.Error != nil {
+        return result.Error
+    }
+
+    // Check if any rows were affected
+    if result.RowsAffected == 0 {
+        return errors.New("inventory not found")
+    }
+
+    return nil
 }

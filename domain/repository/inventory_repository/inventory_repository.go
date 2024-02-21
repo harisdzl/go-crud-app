@@ -8,8 +8,6 @@ type InventoryHandlerRepository interface {
 	GetInventory(int64) (*inventory_entity.Inventory, error)
 	UpdateInventory(*inventory_entity.Inventory) (*inventory_entity.Inventory, error)
 	GetAllInventoryInWarehouse(int64) ([]inventory_entity.Inventory, error)
-	ReduceInventory(int64, int64) error
-	IncreaseInventory(int64, int64) error
 	DeleteInventory(int64) (error)
 }
 

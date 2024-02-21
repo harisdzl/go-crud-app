@@ -3,10 +3,8 @@ package ordereditems
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/ordereditem_entity"
-	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/cache"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 	"gorm.io/gorm"
 )
@@ -20,20 +18,36 @@ func NewOrderedItemsRepository(p *base.Persistence) *OrderedItemsRepo {
 }
 
 
-func (o *OrderedItemsRepo) SaveOrderedItem(orderedItem *ordereditem_entity.OrderedItem) (*ordereditem_entity.OrderedItem, map[string]string) {
+func (o *OrderedItemsRepo) SaveOrderedItem(tx *gorm.DB, orderedItem *ordereditem_entity.OrderedItem) (*ordereditem_entity.OrderedItem, error) {
+	if tx == nil {
+		var errTx error
+		tx := o.p.DB.Begin()
+		if tx.Error != nil {
+			return nil, errors.New("failed to start transaction")
+		}
+	
+		// Defer rollback in case of panic
+		defer func() {
+			if r := recover(); r != nil {
+				tx.Rollback()
+			} else if errTx != nil {
+				tx.Rollback()
+			} else {
+				errC := tx.Commit().Error
+				if errC != nil {
+					tx.Rollback()
+				}
+			}
+		}()
+	}
 
-	cacheRepo := cache.NewCacheRepository("Redis", o.p)
-
-	dbErr := map[string]string{}
-	err := o.p.DB.Debug().Create(&orderedItem).Error
+	err := tx.Debug().Create(&orderedItem).Error
 	if err != nil {
 		fmt.Println("Failed to create orderedItem")
 		fmt.Println(err)
-		dbErr["db_error"] = "database error"
-		return nil, dbErr
+		return nil, err
 	}
 
-	cacheRepo.SetKey(fmt.Sprintf("%v_ORDEREDITEM", orderedItem.ID), orderedItem, time.Minute * 15)
 	
 	return orderedItem, nil
 }
