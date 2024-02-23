@@ -29,17 +29,17 @@ func NewCustomer(p *base.Persistence) *Customer {
 	}
 }
 
-// SaveCustomer saves a single Customer to the database.
-// @Summary Save a single Customer
-// @Description SaveCustomer saves a single Customer to the database.
-// @Tags Customer
-// @Accept json
-// @Produce json
-// @Param Customer body entity.Customer true "Customer object to be saved"
-// @Success 201 {object} entity.Customer "Successfully saved Customer"
-// @Failure 400 {object} map[string]string "Invalid JSON"
-// @Failure 422 {object} map[string]string "Unprocessable entity"
-// @Router /Customers [post]
+
+//	@Summary		Save Customer
+//	@Description	Saves a new customer to the database.
+//	@Tags			Customer
+//	@Accept			json
+//	@Produce		json
+//	@Param			customer	body		customer_entity.Customer			true	"Customer object to be saved"
+//	@Success		201			{object}	entity.ResponseContext	"Success"
+//	@Failure		400			{object}	entity.ResponseContext	"Bad request"
+//	@Failure		500			{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/customers [post]
 func (cr Customer) SaveCustomer(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	customer := customer_entity.Customer{}
@@ -61,7 +61,14 @@ func (cr Customer) SaveCustomer(c *gin.Context) {
 	c.JSON(http.StatusCreated, responseContextData.ResponseData(entity.StatusSuccess, "Customer saved successfully", savedCustomer))
 }
 
-
+//	@Summary		Get All Customers
+//	@Description	Retrieves all customers from the database.
+//	@Tags			Customer
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	entity.ResponseContext	"Success"
+//	@Failure		500	{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/customers [get]
 func (cr Customer) GetAllCustomers(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence)
@@ -78,6 +85,16 @@ func (cr Customer) GetAllCustomers(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "All customers obtained successfully", results))
 }
 
+//	@Summary		Get Customer
+//	@Description	Retrieves a customer by its ID.
+//	@Tags			Customer
+//	@Accept			json
+//	@Produce		json
+//	@Param			customer_id	path		int						true	"Customer ID"
+//	@Success		200			{object}	entity.ResponseContext	"Success"
+//	@Failure		400			{object}	entity.ResponseContext	"Bad request"
+//	@Failure		500			{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/customers/{customer_id} [get]
 func (cr Customer) GetCustomer(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	customerID, err := strconv.ParseInt(c.Param("customer_id"), 10, 64)
@@ -98,6 +115,16 @@ func (cr Customer) GetCustomer(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, fmt.Sprintf("Customer %v obtained", customerID), customer))
 }
 
+//	@Summary		Delete Customer
+//	@Description	Deletes a customer by its ID.
+//	@Tags			Customer
+//	@Accept			json
+//	@Produce		json
+//	@Param			customer_id	path		int						true	"Customer ID"
+//	@Success		200			{object}	entity.ResponseContext	"Success"
+//	@Failure		400			{object}	entity.ResponseContext	"Bad request"
+//	@Failure		500			{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/customers/{customer_id} [delete]
 func (cr Customer) DeleteCustomer(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	customerID, err := strconv.ParseInt(c.Param("customer_id"), 10, 64)
@@ -120,6 +147,18 @@ func (cr Customer) DeleteCustomer(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "Customer deleted successfully", ""))
 }
 
+//	@Summary		Update Customer
+//	@Description	Updates a customer.
+//	@Tags			Customer
+//	@Accept			json
+//	@Produce		json
+//	@Param			customer_id	path		int							true	"Customer ID"
+//	@Param			customer	body		customer_entity.Customer	true	"Customer object to be updated"
+//	@Success		200			{object}	entity.ResponseContext		"Success"
+//	@Failure		400			{object}	entity.ResponseContext		"Bad request"
+//	@Failure		404			{object}	entity.ResponseContext		"Customer not found"
+//	@Failure		422			{object}	entity.ResponseContext		"Unprocessable entity"
+//	@Failure		500			{object}	entity.ResponseContext		"Internal server error"
 func (cr Customer) UpdateCustomer(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	customerID, err := strconv.ParseInt(c.Param("customer_id"), 10, 64)

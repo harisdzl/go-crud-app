@@ -1,0 +1,1194 @@
+definitions:
+  category_entity.Category:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      parent_id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  customer_entity.Customer:
+    properties:
+      address:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      latitude:
+        type: number
+      longitude:
+        type: number
+      name:
+        type: string
+      password:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  entity.ResponseContext:
+    type: object
+  handlers.LoginDetails:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  inventory_entity.Inventory:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      product_id:
+        type: integer
+      stock:
+        type: integer
+      updated_at:
+        type: string
+      warehouse_id:
+        type: integer
+    type: object
+  order_entity.Order:
+    properties:
+      created_at:
+        type: string
+      customer_id:
+        type: integer
+      id:
+        type: integer
+      status:
+        type: string
+      total_checkout:
+        type: number
+      total_cost:
+        type: number
+      total_fees:
+        type: number
+      updated_at:
+        type: string
+      warehouse_id:
+        type: integer
+    type: object
+  product_entity.Product:
+    properties:
+      category_id:
+        type: integer
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      price:
+        type: number
+      updated_at:
+        type: string
+    type: object
+  warehouse_entity.Warehouse:
+    properties:
+      address:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      latitude:
+        type: number
+      longitude:
+        type: number
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /categories:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all categories.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Get All Categories
+      tags:
+      - Category
+  /category:
+    post:
+      consumes:
+      - application/json
+      description: Saves a new category.
+      parameters:
+      - description: Category object to be saved
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/category_entity.Category'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Save Category
+      tags:
+      - Category
+  /category/{category_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a category by its ID.
+      parameters:
+      - description: Category ID
+        in: path
+        name: category_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Delete Category
+      tags:
+      - Category
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a category by its ID.
+      parameters:
+      - description: Category ID
+        in: path
+        name: category_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Get Category
+      tags:
+      - Category
+    put:
+      consumes:
+      - application/json
+      description: Updates a category.
+      parameters:
+      - description: Category ID
+        in: path
+        name: category_id
+        required: true
+        type: integer
+      - description: Category object to be updated
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/category_entity.Category'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "404":
+          description: Category not found
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "422":
+          description: Unprocessable entity
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Update Category
+      tags:
+      - Category
+  /category/{category_id}/parents:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves parent categories of a given category.
+      parameters:
+      - description: Category ID
+        in: path
+        name: category_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Get Parent Categories
+      tags:
+      - Category
+  /customers:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all customers from the database.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Get All Customers
+      tags:
+      - Customer
+    post:
+      consumes:
+      - application/json
+      description: Saves a new customer to the database.
+      parameters:
+      - description: Customer object to be saved
+        in: body
+        name: customer
+        required: true
+        schema:
+          $ref: '#/definitions/customer_entity.Customer'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Save Customer
+      tags:
+      - Customer
+  /customers/{customer_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a customer by its ID.
+      parameters:
+      - description: Customer ID
+        in: path
+        name: customer_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Delete Customer
+      tags:
+      - Customer
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a customer by its ID.
+      parameters:
+      - description: Customer ID
+        in: path
+        name: customer_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Get Customer
+      tags:
+      - Customer
+  /images:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Saves an image along with its metadata.
+      parameters:
+      - description: Image caption
+        in: formData
+        name: caption
+        type: string
+      - description: Product ID
+        in: formData
+        name: product_id
+        required: true
+        type: integer
+      - description: Image file to upload
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Save Image
+      tags:
+      - Image
+  /images/{image_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes an image by its ID.
+      parameters:
+      - description: Image ID
+        in: path
+        name: image_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Delete Image
+      tags:
+      - Image
+    get:
+      consumes:
+      - application/json
+      description: Retrieves an image by its ID.
+      parameters:
+      - description: Image ID
+        in: path
+        name: image_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Get Image
+      tags:
+      - Image
+  /inventory/{product_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves inventory information for a specific product.
+      parameters:
+      - description: Product ID
+        in: path
+        name: product_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Get Inventory
+      tags:
+      - Inventory
+    put:
+      consumes:
+      - application/json
+      description: Updates inventory information for a specific product.
+      parameters:
+      - description: Product ID
+        in: path
+        name: product_id
+        required: true
+        type: integer
+      - description: Inventory object to be updated
+        in: body
+        name: inventory
+        required: true
+        schema:
+          $ref: '#/definitions/inventory_entity.Inventory'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "404":
+          description: Inventory not found
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "422":
+          description: Unprocessable entity
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Update Inventory
+      tags:
+      - Inventory
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates user credentials and returns an access token upon
+        successful authentication.
+      parameters:
+      - description: User credentials
+        in: body
+        name: Details
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.LoginDetails'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: User login
+      tags:
+      - Auth
+  /logout:
+    post:
+      consumes:
+      - application/json
+      description: Logs out the user by blacklisting the provided access token on
+        Redis
+      parameters:
+      - description: Access Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: User logout
+      tags:
+      - Auth
+  /ordereditems:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all ordered items.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Get All Ordered Items
+      tags:
+      - OrderedItem
+  /ordereditems/{order_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all ordered items for a specific order.
+      parameters:
+      - description: Order ID
+        in: path
+        name: order_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Get All Ordered Items For Order
+      tags:
+      - OrderedItem
+  /orders:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all orders.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Get All Orders
+      tags:
+      - Order
+    post:
+      consumes:
+      - application/json
+      description: Saves a single Order to the database.
+      parameters:
+      - description: Order object to be saved
+        in: body
+        name: Order
+        required: true
+        schema:
+          $ref: '#/definitions/order_entity.Order'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "422":
+          description: Unprocessable entity
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Save Order
+      tags:
+      - Order
+  /orders/{order_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a specific order by its ID.
+      parameters:
+      - description: Order ID
+        in: path
+        name: order_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Delete Order
+      tags:
+      - Order
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific order by its ID.
+      parameters:
+      - description: Order ID
+        in: path
+        name: order_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Get Order
+      tags:
+      - Order
+    put:
+      consumes:
+      - application/json
+      description: Updates a specific order by its ID.
+      parameters:
+      - description: Order ID
+        in: path
+        name: order_id
+        required: true
+        type: integer
+      - description: Order object to be updated
+        in: body
+        name: Order
+        required: true
+        schema:
+          $ref: '#/definitions/order_entity.Order'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "404":
+          description: Order not found
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "422":
+          description: Unprocessable entity
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Update Order
+      tags:
+      - Order
+  /products:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all products.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Get All Products
+      tags:
+      - Product
+    post:
+      consumes:
+      - application/json
+      description: SaveProduct saves a single product to the database.
+      parameters:
+      - description: Product object to be saved
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/product_entity.Product'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully saved product
+          schema:
+            $ref: '#/definitions/product_entity.Product'
+        "400":
+          description: Invalid JSON
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "422":
+          description: Unprocessable entity
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Save a single product
+      tags:
+      - Product
+  /products/{product_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a product by ID.
+      parameters:
+      - description: Product ID
+        in: path
+        name: product_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Delete Product
+      tags:
+      - Product
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific product by ID.
+      parameters:
+      - description: Product ID
+        in: path
+        name: product_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Get Product
+      tags:
+      - Product
+    put:
+      consumes:
+      - application/json
+      description: Updates a product.
+      parameters:
+      - description: Product ID
+        in: path
+        name: product_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "422":
+          description: Unprocessable entity
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Update Product
+      tags:
+      - Product
+  /products/{product_id}/images:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all images associated with a product.
+      parameters:
+      - description: Product ID
+        in: path
+        name: product_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Get All Images Of Product
+      tags:
+      - Image
+  /products/search:
+    get:
+      consumes:
+      - application/json
+      description: Searches for products by name.
+      parameters:
+      - description: Product name
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Search Product
+      tags:
+      - Product
+  /warehouses:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all warehouses.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Get All Warehouses
+      tags:
+      - Warehouse
+    post:
+      consumes:
+      - application/json
+      description: SaveWarehouse saves a single warehouse to the database.
+      parameters:
+      - description: Warehouse object to be saved
+        in: body
+        name: Warehouse
+        required: true
+        schema:
+          $ref: '#/definitions/warehouse_entity.Warehouse'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully saved warehouse
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Invalid JSON
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Save a single warehouse
+      tags:
+      - Warehouse
+  /warehouses/{warehouse_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a warehouse by ID.
+      parameters:
+      - description: Warehouse ID
+        in: path
+        name: warehouse_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Delete Warehouse
+      tags:
+      - Warehouse
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific warehouse by ID.
+      parameters:
+      - description: Warehouse ID
+        in: path
+        name: warehouse_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Get Warehouse
+      tags:
+      - Warehouse
+    put:
+      consumes:
+      - application/json
+      description: Updates a warehouse.
+      parameters:
+      - description: Warehouse ID
+        in: path
+        name: warehouse_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "422":
+          description: Unprocessable entity
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Update Warehouse
+      tags:
+      - Warehouse
+  /warehouses/{warehouse_id}/inventories:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all inventories in a warehouse.
+      parameters:
+      - description: Warehouse ID
+        in: path
+        name: warehouse_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Get Inventories in Warehouse
+      tags:
+      - Warehouse
+  /warehouses/search:
+    get:
+      consumes:
+      - application/json
+      description: Searches for warehouses by name.
+      parameters:
+      - description: Warehouse name
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/entity.ResponseContext'
+      summary: Search Warehouse
+      tags:
+      - Warehouse
+swagger: "2.0"

@@ -6,7 +6,7 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 )
 
-func ProductRoutes(router *gin.Engine, p *base.Persistence) {
+func ProductRoutes(router *gin.RouterGroup, p *base.Persistence) {
     products := handlers.NewProduct(p)
 
     products.UpdateProductSearchDB()

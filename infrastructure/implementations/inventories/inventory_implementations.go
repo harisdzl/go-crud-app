@@ -57,9 +57,9 @@ func (r *InventoryRepo) GetInventory(productID int64) (*inventory_entity.Invento
 		if err != nil {
 			fmt.Println("Failed to get Inventory")
 		}
-		if inventory != nil && inventory.ProductID > 0 {
-			_ = cacheRepo.SetKey(fmt.Sprintf("%v_INVENTORY", productID), inventory, time.Minute * 15)
-		}
+		// if inventory != nil && inventory.ProductID > 0 {
+		// 	_ = cacheRepo.SetKey(fmt.Sprintf("%v_INVENTORY", productID), inventory, time.Minute * 15)
+		// }
 	}
 
 
@@ -119,11 +119,12 @@ func (r *InventoryRepo) DeleteInventory(id int64) error {
 
 func (r *InventoryRepo) ReduceInventory(tx *gorm.DB, id int64, quantityOrdered int64) error {
 	// Update inventory stock directly in the database
+
 	if tx == nil {
 		var errTx error
 		tx := r.p.DB.Begin()
 		if tx.Error != nil {
-			return errors.New("Failed to start transaction")
+			return errors.New("failed to start transaction")
 		}
 	
 		// Defer rollback in case of panic
@@ -146,10 +147,12 @@ func (r *InventoryRepo) ReduceInventory(tx *gorm.DB, id int64, quantityOrdered i
 	}
 
 	if inventory.Stock < int(quantityOrdered) {
-		return errors.New(fmt.Sprintf("Not enough stock. Maximum quantity is %v", inventory.Stock))
+		return fmt.Errorf("not enough stock. Maximum quantity is %v", inventory.Stock)
 	}
 	result := tx.Model(&inventory).
 		Update("stock", gorm.Expr("stock - ?", quantityOrdered))
+	
+
 	if result.Error != nil {
 		return result.Error
 	}

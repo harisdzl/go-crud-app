@@ -6,7 +6,7 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 )
 
-func CategoryRoutes(router *gin.Engine, p *base.Persistence) {
+func CategoryRoutes(router *gin.RouterGroup, p *base.Persistence) {
     categories := handlers.NewCategory(p)
        
     router.POST("/categories", categories.SaveCategory)

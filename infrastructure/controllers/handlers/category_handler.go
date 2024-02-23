@@ -28,6 +28,16 @@ func NewCategory(p *base.Persistence) *Category {
 	}
 }
 
+//	@Summary		Save Category
+//	@Description	Saves a new category.
+//	@Tags			Category
+//	@Accept			json
+//	@Produce		json
+//	@Param			category	body		category_entity.Category	true	"Category object to be saved"
+//	@Success		200			{object}	entity.ResponseContext		"Success"
+//	@Failure		400			{object}	entity.ResponseContext		"Bad request"
+//	@Failure		500			{object}	entity.ResponseContext		"Internal server error"
+//	@Router			/category [post]
 func (ca *Category) SaveCategory(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	category := category_entity.Category{}
@@ -51,6 +61,16 @@ func (ca *Category) SaveCategory(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "Category saved successfully", savedCategory))
 }
 
+//	@Summary		Get Category
+//	@Description	Retrieves a category by its ID.
+//	@Tags			Category
+//	@Accept			json
+//	@Produce		json
+//	@Param			category_id	path		int						true	"Category ID"
+//	@Success		200			{object}	entity.ResponseContext	"Success"
+//	@Failure		400			{object}	entity.ResponseContext	"Bad request"
+//	@Failure		500			{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/category/{category_id} [get]
 func (ca *Category) GetCategory(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	categoryID, err := strconv.ParseInt((c.Param("category_id")), 10, 64)
@@ -72,6 +92,14 @@ func (ca *Category) GetCategory(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, fmt.Sprintf("Category %v obtained", categoryID), category))
 }
 
+//	@Summary		Get All Categories
+//	@Description	Retrieves all categories.
+//	@Tags			Category
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	entity.ResponseContext	"Success"
+//	@Failure		500	{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/categories [get]
 func (ca *Category) GetAllCategories(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	ca.CategoryRepo = application.NewCategoryApplication(ca.Persistence)
@@ -88,6 +116,15 @@ func (ca *Category) GetAllCategories(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "All categories obtained", results))
 }
 
+//	@Summary		Get Parent Categories
+//	@Description	Retrieves parent categories of a given category.
+//	@Tags			Category
+//	@Accept			json
+//	@Produce		json
+//	@Param			category_id	path		int						true	"Category ID"
+//	@Success		200			{object}	entity.ResponseContext	"Success"
+//	@Failure		500			{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/category/{category_id}/parents [get]
 func (ca *Category) GetParentCategories(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	ca.CategoryRepo = application.NewCategoryApplication(ca.Persistence)
@@ -112,7 +149,16 @@ func (ca *Category) GetParentCategories(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "All parent categories obtained", results))
 }
 
-
+//	@Summary		Delete Category
+//	@Description	Deletes a category by its ID.
+//	@Tags			Category
+//	@Accept			json
+//	@Produce		json
+//	@Param			category_id	path		int						true	"Category ID"
+//	@Success		200			{object}	entity.ResponseContext	"Success"
+//	@Failure		400			{object}	entity.ResponseContext	"Bad request"
+//	@Failure		500			{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/category/{category_id} [delete]
 func (ca *Category) DeleteCategory(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	categoryID, err := strconv.ParseInt((c.Param("category_id")), 10, 64)
@@ -134,6 +180,19 @@ func (ca *Category) DeleteCategory(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess,fmt.Sprintf("Category %v has been deleted", categoryID), ""))
 }
 
+//	@Summary		Update Category
+//	@Description	Updates a category.
+//	@Tags			Category
+//	@Accept			json
+//	@Produce		json
+//	@Param			category_id	path		int							true	"Category ID"
+//	@Param			category	body		category_entity.Category	true	"Category object to be updated"
+//	@Success		200			{object}	entity.ResponseContext		"Success"
+//	@Failure		400			{object}	entity.ResponseContext		"Bad request"
+//	@Failure		404			{object}	entity.ResponseContext		"Category not found"
+//	@Failure		422			{object}	entity.ResponseContext		"Unprocessable entity"
+//	@Failure		500			{object}	entity.ResponseContext		"Internal server error"
+//	@Router			/category/{category_id} [put]
 func (ca *Category) UpdateCategory(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	categoryID, err := strconv.ParseInt(c.Param("category_id"), 10, 64)

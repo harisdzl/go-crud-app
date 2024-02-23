@@ -6,7 +6,7 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 )
 
-func OrderedItemRoutes(router *gin.Engine, p *base.Persistence) {
+func OrderedItemRoutes(router *gin.RouterGroup, p *base.Persistence) {
     orderedItems := handlers.NewOrderedItem(p)
     
     router.GET("/ordereditems", orderedItems.GetAllOrderedItems)

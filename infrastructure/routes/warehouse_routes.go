@@ -6,7 +6,7 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 )
 
-func WarehouseRoutes(router *gin.Engine, p *base.Persistence) {
+func WarehouseRoutes(router *gin.RouterGroup, p *base.Persistence) {
     warehouses := handlers.NewWarehouse(p)
 
     warehouses.UpdateWarehouseSearchDB()

@@ -20,7 +20,7 @@ type ServiceResponse struct {
 }
 
 type ResponseContext struct {
-	Ctx *gin.Context
+	Ctx *gin.Context `swaggerignore:"true"`
 }
 
 func (self *ResponseContext) ResponseData(status string, message string, data interface{}) Response {

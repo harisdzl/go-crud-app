@@ -29,17 +29,17 @@ func NewWarehouse(p *base.Persistence) *Warehouse {
 	}
 }
 
-// SaveWarehouse saves a single Warehouse to the database.
-// @Summary Save a single Warehouse
-// @Description SaveWarehouse saves a single Warehouse to the database.
-// @Tags Warehouse
-// @Accept json
-// @Produce json
-// @Param Warehouse body entity.Warehouse true "Warehouse object to be saved"
-// @Success 201 {object} entity.Warehouse "Successfully saved Warehouse"
-// @Failure 400 {object} map[string]string "Invalid JSON"
-// @Failure 422 {object} map[string]string "Unprocessable entity"
-// @Router /Warehouses [post]
+// SaveWarehouse saves a single warehouse to the database.
+//	@Summary		Save a single warehouse
+//	@Description	SaveWarehouse saves a single warehouse to the database.
+//	@Tags			Warehouse
+//	@Accept			json
+//	@Produce		json
+//	@Param			Warehouse	body		warehouse_entity.Warehouse		true	"Warehouse object to be saved"
+//	@Success		201			{object}	entity.ResponseContext	"Successfully saved warehouse"
+//	@Failure		400			{object}	entity.ResponseContext	"Invalid JSON"
+//	@Failure		500			{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/warehouses [post]
 func (pr *Warehouse) SaveWarehouse(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	warehouse := warehouse_entity.Warehouse{}
@@ -61,6 +61,17 @@ func (pr *Warehouse) SaveWarehouse(c *gin.Context) {
 	c.JSON(http.StatusCreated, responseContextData.ResponseData(entity.StatusSuccess, "Warehouse saved successfully", savedWarehouse))
 }
 
+// GetInventoriesInWarehouse retrieves all inventories in a warehouse.
+//	@Summary		Get Inventories in Warehouse
+//	@Description	Retrieves all inventories in a warehouse.
+//	@Tags			Warehouse
+//	@Accept			json
+//	@Produce		json
+//	@Param			warehouse_id	path		int						true	"Warehouse ID"
+//	@Success		200				{object}	entity.ResponseContext	"Success"
+//	@Failure		400				{object}	entity.ResponseContext	"Bad request"
+//	@Failure		500				{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/warehouses/{warehouse_id}/inventories [get]
 func (pr *Warehouse) GetInventoriesInWarehouse(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence)
@@ -82,6 +93,15 @@ func (pr *Warehouse) GetInventoriesInWarehouse(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "Inventories obtained successfully", warehouse))
 }
 
+// GetAllWarehouses retrieves all warehouses.
+//	@Summary		Get All Warehouses
+//	@Description	Retrieves all warehouses.
+//	@Tags			Warehouse
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	entity.ResponseContext	"Success"
+//	@Failure		500	{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/warehouses [get]
 func (pr *Warehouse) GetAllWarehouses(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence)
@@ -98,6 +118,17 @@ func (pr *Warehouse) GetAllWarehouses(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "All warehouses obtained successfully", results))
 }
 
+// GetWarehouse retrieves a specific warehouse by ID.
+//	@Summary		Get Warehouse
+//	@Description	Retrieves a specific warehouse by ID.
+//	@Tags			Warehouse
+//	@Accept			json
+//	@Produce		json
+//	@Param			warehouse_id	path		int						true	"Warehouse ID"
+//	@Success		200				{object}	entity.ResponseContext	"Success"
+//	@Failure		400				{object}	entity.ResponseContext	"Bad request"
+//	@Failure		500				{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/warehouses/{warehouse_id} [get]
 func (pr *Warehouse) GetWarehouse(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	warehouseID, err := strconv.ParseInt(c.Param("warehouse_id"), 10, 64)
@@ -118,6 +149,17 @@ func (pr *Warehouse) GetWarehouse(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, fmt.Sprintf("Warehouse %v obtained", warehouseID), warehouse))
 }
 
+// DeleteWarehouse deletes a warehouse by ID.
+//	@Summary		Delete Warehouse
+//	@Description	Deletes a warehouse by ID.
+//	@Tags			Warehouse
+//	@Accept			json
+//	@Produce		json
+//	@Param			warehouse_id	path		int						true	"Warehouse ID"
+//	@Success		200				{object}	entity.ResponseContext	"Success"
+//	@Failure		400				{object}	entity.ResponseContext	"Bad request"
+//	@Failure		500				{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/warehouses/{warehouse_id} [delete]
 func (pr *Warehouse) DeleteWarehouse(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	warehouseID, err := strconv.ParseInt(c.Param("warehouse_id"), 10, 64)
@@ -140,6 +182,18 @@ func (pr *Warehouse) DeleteWarehouse(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "Warehouse deleted successfully", ""))
 }
 
+// UpdateWarehouse updates a warehouse.
+//	@Summary		Update Warehouse
+//	@Description	Updates a warehouse.
+//	@Tags			Warehouse
+//	@Accept			json
+//	@Produce		json
+//	@Param			warehouse_id	path		int						true	"Warehouse ID"
+//	@Success		200				{object}	entity.ResponseContext	"Success"
+//	@Failure		400				{object}	entity.ResponseContext	"Bad request"
+//	@Failure		404				{object}	entity.ResponseContext	"Not found"
+//	@Failure		422				{object}	entity.ResponseContext	"Unprocessable entity"
+//	@Router			/warehouses/{warehouse_id} [put]
 func (pr *Warehouse) UpdateWarehouse(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	warehouseID, err := strconv.ParseInt(c.Param("warehouse_id"), 10, 64)
@@ -177,6 +231,16 @@ func (pr *Warehouse) UpdateWarehouse(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "Warehouse updated successfully", updatedWarehouse))
 }
 
+// SearchWarehouse searches for warehouses by name.
+//	@Summary		Search Warehouse
+//	@Description	Searches for warehouses by name.
+//	@Tags			Warehouse
+//	@Accept			json
+//	@Produce		json
+//	@Param			name	query		string					false	"Warehouse name"
+//	@Success		200		{object}	entity.ResponseContext	"Success"
+//	@Failure		500		{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/warehouses/search [get]
 func (pr *Warehouse) SearchWarehouse(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	var WarehousesName = c.Query("name")

@@ -28,6 +28,16 @@ func NewInventory(p *base.Persistence) *Inventory {
 	}
 }
 
+//	@Summary		Get Inventory
+//	@Description	Retrieves inventory information for a specific product.
+//	@Tags			Inventory
+//	@Accept			json
+//	@Produce		json
+//	@Param			product_id	path		int						true	"Product ID"
+//	@Success		200			{object}	entity.ResponseContext	"Success"
+//	@Failure		400			{object}	entity.ResponseContext	"Bad request"
+//	@Failure		500			{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/inventory/{product_id} [get]
 func (inv *Inventory) GetInventory(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	productID, err := strconv.ParseInt((c.Param("product_id")), 10, 64)
@@ -49,6 +59,19 @@ func (inv *Inventory) GetInventory(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, fmt.Sprintf("Inventory for product %v obtained", productID), inventory))
 }
 
+//	@Summary		Update Inventory
+//	@Description	Updates inventory information for a specific product.
+//	@Tags			Inventory
+//	@Accept			json
+//	@Produce		json
+//	@Param			product_id	path		int						true	"Product ID"
+//	@Param			inventory	body		inventory_entity.Inventory		true	"Inventory object to be updated"
+//	@Success		200			{object}	entity.ResponseContext	"Success"
+//	@Failure		400			{object}	entity.ResponseContext	"Bad request"
+//	@Failure		404			{object}	entity.ResponseContext	"Inventory not found"
+//	@Failure		422			{object}	entity.ResponseContext	"Unprocessable entity"
+//	@Failure		500			{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/inventory/{product_id} [put]
 func (inv *Inventory) UpdateInventory(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	productIDofInventory, err := strconv.ParseInt(c.Param("product_id"), 10, 64)

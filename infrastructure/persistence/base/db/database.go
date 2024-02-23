@@ -18,7 +18,7 @@ func NewDB() (*Database, error) {
 	user := os.Getenv("DB_USER")
 	dbname := os.Getenv("DB_NAME")
 		
-	dsn := fmt.Sprintf("postgresql://%s:%s@%s-5930.6xw.aws-ap-southeast-1.cockroachlabs.cloud:26257/defaultdb?sslmode=verify-full", user, password, dbname)
+	dsn := fmt.Sprintf("postgresql://%s:%s@%s-8649.8nk.gcp-asia-southeast1.cockroachlabs.cloud:26257/defaultdb?sslmode=verify-full", user, password, dbname)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	
 	if err != nil {

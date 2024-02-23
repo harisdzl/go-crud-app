@@ -6,7 +6,7 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 )
 
-func OrderRoutes(router *gin.Engine, p *base.Persistence) {
+func OrderRoutes(router *gin.RouterGroup, p *base.Persistence) {
     orders := handlers.NewOrder(p)
     
     router.POST("/orders", orders.SaveOrder)

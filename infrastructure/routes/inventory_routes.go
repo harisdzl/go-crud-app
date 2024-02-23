@@ -6,7 +6,7 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 )
 
-func InventoryRoutes(router *gin.Engine, p *base.Persistence) {
+func InventoryRoutes(router *gin.RouterGroup, p *base.Persistence) {
     inventories := handlers.NewInventory(p)
        
     router.GET("/products/:product_id/inventories", inventories.GetInventory)

@@ -30,20 +30,28 @@ func NewOrder(p *base.Persistence) *Order {
 	}
 }
 
-// SaveOrder saves a single Order to the database.
-// @Summary Save a single Order
-// @Description SaveOrder saves a single Order to the database.
-// @Tags Order
-// @Accept json
-// @Produce json
-// @Param Order body entity.Order true "Order object to be saved"
-// @Success 201 {object} entity.Order "Successfully saved Order"
-// @Failure 400 {object} map[string]string "Invalid JSON"
-// @Failure 422 {object} map[string]string "Unprocessable entity"
-// @Router /Orders [post]
+//	@Summary		Save Order
+//	@Description	Saves a single Order to the database.
+//	@Tags			Order
+//	@Accept			json
+//	@Produce		json
+//	@Param			Order	body		order_entity.Order			true	"Order object to be saved"
+//	@Success		201		{object}	entity.ResponseContext	"Success"
+//	@Failure		400		{object}	entity.ResponseContext	"Bad request"
+//	@Failure		422		{object}	entity.ResponseContext	"Unprocessable entity"
+//	@Router			/orders [post]
 func (or Order) SaveOrder(c *gin.Context) {
     responseContextData := entity.ResponseContext{Ctx: c}
     rawOrder := order_entity.RawOrder{}
+	userIdString := c.GetString("userID")
+	userId, userIdErr := strconv.ParseInt(userIdString, 10, 64)
+
+	if userIdErr != nil {
+        c.JSON(http.StatusUnprocessableEntity, responseContextData.ResponseData(entity.StatusFail, "Invalid user", ""))
+        return
+	}
+
+	rawOrder.CustomerID = userId
     if err := c.ShouldBindJSON(&rawOrder); err != nil {
 		log.Println(err)
         c.JSON(http.StatusUnprocessableEntity, responseContextData.ResponseData(entity.StatusFail, "Invalid JSON", ""))
@@ -61,6 +69,14 @@ func (or Order) SaveOrder(c *gin.Context) {
     c.JSON(http.StatusCreated, responseContextData.ResponseData(entity.StatusSuccess, "Order saved successfully", savedOrder))
 }
 
+//	@Summary		Get All Orders
+//	@Description	Retrieves all orders.
+//	@Tags			Order
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	entity.ResponseContext	"Success"
+//	@Failure		500	{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/orders [get]
 func (or Order) GetAllOrders(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	or.OrderRepo = application.NewOrderApplication(or.Persistence)
@@ -77,6 +93,17 @@ func (or Order) GetAllOrders(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "All orders obtained successfully", results))
 }
 
+// GetOrder retrieves a specific order by its ID.
+//	@Summary		Get Order
+//	@Description	Retrieves a specific order by its ID.
+//	@Tags			Order
+//	@Accept			json
+//	@Produce		json
+//	@Param			order_id	path		int						true	"Order ID"
+//	@Success		200			{object}	entity.ResponseContext	"Success"
+//	@Failure		400			{object}	entity.ResponseContext	"Bad request"
+//	@Failure		500			{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/orders/{order_id} [get]
 func (or Order) GetOrder(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	orderID, err := strconv.ParseInt(c.Param("order_id"), 10, 64)
@@ -97,6 +124,17 @@ func (or Order) GetOrder(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, fmt.Sprintf("Order %v obtained", orderID), order))
 }
 
+// DeleteOrder deletes a specific order by its ID.
+//	@Summary		Delete Order
+//	@Description	Deletes a specific order by its ID.
+//	@Tags			Order
+//	@Accept			json
+//	@Produce		json
+//	@Param			order_id	path		int						true	"Order ID"
+//	@Success		200			{object}	entity.ResponseContext	"Success"
+//	@Failure		400			{object}	entity.ResponseContext	"Bad request"
+//	@Failure		500			{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/orders/{order_id} [delete]
 func (or Order) DeleteOrder(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	orderID, err := strconv.ParseInt(c.Param("order_id"), 10, 64)
@@ -133,6 +171,20 @@ func (or Order) DeleteOrder(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "Order deleted successfully", ""))
 }
 
+// UpdateOrder updates a specific order by its ID.
+//	@Summary		Update Order
+//	@Description	Updates a specific order by its ID.
+//	@Tags			Order
+//	@Accept			json
+//	@Produce		json
+//	@Param			order_id	path		int						true	"Order ID"
+//	@Param			Order		body		order_entity.Order			true	"Order object to be updated"
+//	@Success		200			{object}	entity.ResponseContext	"Success"
+//	@Failure		400			{object}	entity.ResponseContext	"Bad request"
+//	@Failure		404			{object}	entity.ResponseContext	"Order not found"
+//	@Failure		422			{object}	entity.ResponseContext	"Unprocessable entity"
+//	@Failure		500			{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/orders/{order_id} [put]
 func (or Order) UpdateOrder(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	orderID, err := strconv.ParseInt(c.Param("order_id"), 10, 64)

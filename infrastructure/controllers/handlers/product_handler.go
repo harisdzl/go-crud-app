@@ -38,16 +38,16 @@ func NewProduct(p *base.Persistence) *Product {
 }
 
 // SaveProduct saves a single product to the database.
-// @Summary Save a single product
-// @Description SaveProduct saves a single product to the database.
-// @Tags Product
-// @Accept json
-// @Produce json
-// @Param product body entity.Product true "Product object to be saved"
-// @Success 201 {object} entity.Product "Successfully saved product"
-// @Failure 400 {object} map[string]string "Invalid JSON"
-// @Failure 422 {object} map[string]string "Unprocessable entity"
-// @Router /products [post]
+//	@Summary		Save a single product
+//	@Description	SaveProduct saves a single product to the database.
+//	@Tags			Product
+//	@Accept			json
+//	@Produce		json
+//	@Param			product	body		product_entity.Product		true	"Product object to be saved"
+//	@Success		201		{object}	product_entity.Product		"Successfully saved product"
+//	@Failure		400		{object}	map[string]string	"Invalid JSON"
+//	@Failure		422		{object}	map[string]string	"Unprocessable entity"
+//	@Router			/products [post]
 func (pr *Product) SaveProduct(c *gin.Context) {
     responseContextData := entity.ResponseContext{Ctx: c}
     productForInventory := product_entity.ProductForInventory{}
@@ -98,6 +98,15 @@ func (pr *Product) SaveProduct(c *gin.Context) {
 
 // }
 
+// GetAllProducts retrieves all products.
+//	@Summary		Get All Products
+//	@Description	Retrieves all products.
+//	@Tags			Product
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	entity.ResponseContext	"Success"
+//	@Failure		500	{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/products [get]
 func (pr *Product) GetAllProducts(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	pr.productRepo = application.NewProductApplication(pr.Persistence)
@@ -113,6 +122,17 @@ func (pr *Product) GetAllProducts(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "All products obtained", results))
 }
 
+// GetProduct retrieves a specific product by ID.
+//	@Summary		Get Product
+//	@Description	Retrieves a specific product by ID.
+//	@Tags			Product
+//	@Accept			json
+//	@Produce		json
+//	@Param			product_id	path		int						true	"Product ID"
+//	@Success		200			{object}	entity.ResponseContext	"Success"
+//	@Failure		400			{object}	entity.ResponseContext	"Bad request"
+//	@Failure		500			{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/products/{product_id} [get]
 func (pr *Product) GetProduct(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 
@@ -134,6 +154,17 @@ func (pr *Product) GetProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, fmt.Sprintf("Product %v obtained", productId), product))
 }
 
+// DeleteProduct deletes a product by ID.
+//	@Summary		Delete Product
+//	@Description	Deletes a product by ID.
+//	@Tags			Product
+//	@Accept			json
+//	@Produce		json
+//	@Param			product_id	path		int						true	"Product ID"
+//	@Success		200			{object}	entity.ResponseContext	"Success"
+//	@Failure		400			{object}	entity.ResponseContext	"Bad request"
+//	@Failure		500			{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/products/{product_id} [delete]
 func (pr *Product) DeleteProduct(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	productId, err := strconv.ParseInt((c.Param("product_id")), 10, 64)
@@ -154,6 +185,18 @@ func (pr *Product) DeleteProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess,fmt.Sprintf("Product %v has been deleted", productId), ""))
 }
 
+// UpdateProduct updates a product.
+//	@Summary		Update Product
+//	@Description	Updates a product.
+//	@Tags			Product
+//	@Accept			json
+//	@Produce		json
+//	@Param			product_id	path		int						true	"Product ID"
+//	@Success		200			{object}	entity.ResponseContext	"Success"
+//	@Failure		400			{object}	entity.ResponseContext	"Bad request"
+//	@Failure		404			{object}	entity.ResponseContext	"Not found"
+//	@Failure		422			{object}	entity.ResponseContext	"Unprocessable entity"
+//	@Router			/products/{product_id} [put]
 func (pr *Product) UpdateProduct(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	productId, err := strconv.ParseInt(c.Param("product_id"), 10, 64)
@@ -191,6 +234,16 @@ func (pr *Product) UpdateProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "Product updated succesfully", updatedProduct))
 }
 
+// SearchProduct searches for products by name.
+//	@Summary		Search Product
+//	@Description	Searches for products by name.
+//	@Tags			Product
+//	@Accept			json
+//	@Produce		json
+//	@Param			name	query		string					false	"Product name"
+//	@Success		200		{object}	entity.ResponseContext	"Success"
+//	@Failure		500		{object}	entity.ResponseContext	"Internal server error"
+//	@Router			/products/search [get]
 func (pr *Product) SearchProduct(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	var productsName = c.Query("name")

@@ -6,7 +6,7 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 )
 
-func ImageRoutes(router *gin.Engine, p *base.Persistence) {
+func ImageRoutes(router *gin.RouterGroup, p *base.Persistence) {
     images := handlers.NewImage(p)
        
     router.POST("/images", images.SaveImage)
