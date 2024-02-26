@@ -9,38 +9,43 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-
 func InitRouter(p *base.Persistence) *gin.Engine {
-
-	r := gin.Default()
-	p.Automigrate()
-	AuthRoutesPublic(r.Group("/"), p)
-	CustomerPublicRoutes(r.Group("/"), p)
-	private := r.Group("/")
-	middleware := middleware.AuthHandler(p)
-	private.Use(middleware)
-
-	{
-		ProductRoutes(private, p)
-		InventoryRoutes(private, p)
-		WarehouseRoutes(private, p)
-		ImageRoutes(private, p)
-		CategoryRoutes(private, p)
-		CustomerPrivateRoutes(private, p)
-		OrderRoutes(private, p)
-		OrderedItemRoutes(private, p)
-		AuthRoutesPrivate(private, p)
-	}
-
-	docs.SwaggerInfo.Title = "Quqo Challenge"
-	docs.SwaggerInfo.BasePath = "/"
-	docs.SwaggerInfo.Description = "Documentation - Quqo Challenge"
-	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Schemes = []string{"http", "https"}
-	
-	// use ginSwagger middleware to serve the API docs
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+    r := gin.Default()
+    p.Automigrate()
+    AuthRoutesPublic(r.Group("/"), p)
+    CustomerPublicRoutes(r.Group("/"), p)
+    private := r.Group("/")
+    authMiddleware := middleware.AuthHandler(p)
 
 
-	return r
+    // Apply Honeycomb middleware to all routes
+    honeycombMiddleware := middleware.HoneycombHandler()
+
+
+    private.Use(authMiddleware, honeycombMiddleware)
+
+    // Define routes within the private group
+    {
+        ProductRoutes(private, p)
+        InventoryRoutes(private, p)
+        WarehouseRoutes(private, p)
+        ImageRoutes(private, p)
+        CategoryRoutes(private, p)
+        CustomerPrivateRoutes(private, p)
+        OrderRoutes(private, p)
+        OrderedItemRoutes(private, p)
+        AuthRoutesPrivate(private, p)
+    }
+
+    // Swagger documentation setup
+    docs.SwaggerInfo.Title = "Quqo Challenge"
+    docs.SwaggerInfo.BasePath = "/"
+    docs.SwaggerInfo.Description = "Documentation - Quqo Challenge"
+    docs.SwaggerInfo.Version = "1.0"
+    docs.SwaggerInfo.Schemes = []string{"http", "https"}
+
+    // Use ginSwagger middleware to serve the API docs
+    r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+    return r
 }

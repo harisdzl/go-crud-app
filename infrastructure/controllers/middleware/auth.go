@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -19,7 +18,6 @@ func AuthHandler(p *base.Persistence) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 	   token := c.Request.Header.Get("Authorization")
-	   log.Println(token)
 	   
 	   b := "Bearer "
 	   if !strings.Contains(token, b) {
@@ -51,7 +49,6 @@ func AuthHandler(p *base.Persistence) gin.HandlerFunc {
 		  tokenCatches = *v2
 	   }
 	   userIDInterface := tokenCatches.Claims.(jwt.MapClaims)["user_id"]
-	   fmt.Println(tokenCatches.Claims)
 
 	   userID, ok := userIDInterface.(string)
 	   if !ok {
