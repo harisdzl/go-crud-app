@@ -9,9 +9,14 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+func InitMiddleware(engine *gin.Engine) {
+	engine.Use(middleware.CORSMiddleware())
+}
+
 func InitRouter(p *base.Persistence) *gin.Engine {
     r := gin.Default()
     p.Automigrate()
+    InitMiddleware(r)
     AuthRoutesPublic(r.Group("/"), p)
     CustomerPublicRoutes(r.Group("/"), p)
     private := r.Group("/")
