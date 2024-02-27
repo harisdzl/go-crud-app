@@ -59,6 +59,7 @@ require (
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/honeycombio/beeline-go v1.14.0 // indirect
 	github.com/honeycombio/honeycomb-opentelemetry-go v0.9.0 // indirect
 	github.com/honeycombio/libhoney-go v1.20.0 // indirect
 	github.com/honeycombio/otel-config-go v1.13.0 // indirect

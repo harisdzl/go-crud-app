@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/ordereditem_entity"
@@ -12,10 +13,11 @@ import (
 
 type OrderedItemApp struct {
 	p *base.Persistence
+	c context.Context
 }
 
-func NewOrderedItemApplication(p *base.Persistence) ordereditem_repository.OrderedItemRepository {
-	return &OrderedItemApp{p}
+func NewOrderedItemApplication(p *base.Persistence, c context.Context) ordereditem_repository.OrderedItemRepository {
+	return &OrderedItemApp{p, c}
 }
 
 func (a *OrderedItemApp) ReverseOrder(orderedItems []ordereditem_entity.OrderedItem) map[string]string {
@@ -26,7 +28,7 @@ func (a *OrderedItemApp) ReverseOrder(orderedItems []ordereditem_entity.OrderedI
 		quantityToAdd := orderedItem.Quantity
 
 		// Increase inventory for the product
-		inventoryRepo := inventories.NewInventoryRepository(a.p)
+		inventoryRepo := inventories.NewInventoryRepository(a.p, a.c)
 		err := inventoryRepo.IncreaseInventory(orderedItem.ProductID, quantityToAdd)
 		if err != nil {
 			errorMap[fmt.Sprintf("product_%d", orderedItem.ProductID)] = err.Error()
@@ -38,11 +40,11 @@ func (a *OrderedItemApp) ReverseOrder(orderedItems []ordereditem_entity.OrderedI
 }
 
 func (a *OrderedItemApp) GetAllOrderedItems() ([]ordereditem_entity.OrderedItem, error) {
-	repoOrderedItem := ordereditems.NewOrderedItemsRepository(a.p)
+	repoOrderedItem := ordereditems.NewOrderedItemsRepository(a.p, a.c)
 	return repoOrderedItem.GetAllOrderedItems()
 }
 
 func (a *OrderedItemApp) GetAllOrderedItemsForOrder(orderId int64) ([]ordereditem_entity.OrderedItem, error) {
-	repoOrderedItem := ordereditems.NewOrderedItemsRepository(a.p)
+	repoOrderedItem := ordereditems.NewOrderedItemsRepository(a.p, a.c)
 	return repoOrderedItem.GetAllOrderedItemsForOrder(orderId)
 }

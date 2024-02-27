@@ -1,24 +1,31 @@
 package ordereditems
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/ordereditem_entity"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
+	"go.opentelemetry.io/otel"
 	"gorm.io/gorm"
 )
 
 type OrderedItemsRepo struct {
 	p *base.Persistence
+	c context.Context
 }
 
-func NewOrderedItemsRepository(p *base.Persistence) *OrderedItemsRepo {
-	return &OrderedItemsRepo{p}
+func NewOrderedItemsRepository(p *base.Persistence, c context.Context) *OrderedItemsRepo {
+	return &OrderedItemsRepo{p, c}
 }
 
 
 func (o *OrderedItemsRepo) SaveOrderedItem(tx *gorm.DB, orderedItem *ordereditem_entity.OrderedItem) (*ordereditem_entity.OrderedItem, error) {
+	tracer := otel.Tracer("implementations.inventories.ReduceInventory")
+	_, span := tracer.Start(o.c, "implementations.inventories.ReduceInventory")
+	defer span.End()
+
 	if tx == nil {
 		var errTx error
 		tx := o.p.DB.Begin()
@@ -43,6 +50,7 @@ func (o *OrderedItemsRepo) SaveOrderedItem(tx *gorm.DB, orderedItem *ordereditem
 
 	err := tx.Debug().Create(&orderedItem).Error
 	if err != nil {
+		span.RecordError(err)
 		fmt.Println("Failed to create orderedItem")
 		fmt.Println(err)
 		return nil, err

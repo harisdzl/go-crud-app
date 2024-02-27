@@ -1,6 +1,7 @@
 package products
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -19,10 +20,11 @@ import (
 // Product Repository struct
 type ProductRepo struct {
 	p *base.Persistence
+	c context.Context
 }
 
-func NewProductRepository(p *base.Persistence) *ProductRepo {
-	return &ProductRepo{p}
+func NewProductRepository(p *base.Persistence, c context.Context) *ProductRepo {
+	return &ProductRepo{p, c}
 }
 
 // To explicitly check that the ProductRepo implements the repository.ProductRepository interface

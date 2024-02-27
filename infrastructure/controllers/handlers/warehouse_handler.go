@@ -49,7 +49,7 @@ func (pr *Warehouse) SaveWarehouse(c *gin.Context) {
 		return
 	}
 
-	pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence)
+	pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence, c)
 
 	savedWarehouse, saveErr := pr.WarehouseRepo.SaveWarehouse(&warehouse)
 
@@ -74,7 +74,7 @@ func (pr *Warehouse) SaveWarehouse(c *gin.Context) {
 //	@Router			/warehouses/{warehouse_id}/inventories [get]
 func (pr *Warehouse) GetInventoriesInWarehouse(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
-	pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence)
+	pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence, c)
 
 	warehouseID, err := strconv.ParseInt(c.Param("warehouse_id"), 10, 64)
 	if err != nil {
@@ -83,7 +83,7 @@ func (pr *Warehouse) GetInventoriesInWarehouse(c *gin.Context) {
 		return
 	}
 
-	warehouse, warehouseErr := application.NewInventoryApplication(pr.Persistence).GetAllInventoryInWarehouse(warehouseID)
+	warehouse, warehouseErr := application.NewInventoryApplication(pr.Persistence, c).GetAllInventoryInWarehouse(warehouseID)
 
 	if warehouseErr != nil {
 		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, warehouseErr.Error(), ""))
@@ -104,7 +104,7 @@ func (pr *Warehouse) GetInventoriesInWarehouse(c *gin.Context) {
 //	@Router			/warehouses [get]
 func (pr *Warehouse) GetAllWarehouses(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
-	pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence)
+	pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence, c)
 
 	allWarehouses, err := pr.WarehouseRepo.GetAllWarehouses()
 	if err != nil {
@@ -139,7 +139,7 @@ func (pr *Warehouse) GetWarehouse(c *gin.Context) {
 		return
 	}
 
-	pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence)
+	pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence, c)
 
 	warehouse, err := pr.WarehouseRepo.GetWarehouse(warehouseID)
 	if err != nil {
@@ -169,7 +169,7 @@ func (pr *Warehouse) DeleteWarehouse(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, responseContextData.ResponseData(entity.StatusFail, err.Error(), ""))
 		return
 	}
-	pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence)
+	pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence, c)
 
 	deleteErr := pr.WarehouseRepo.DeleteWarehouse(warehouseID)
 	// TODO: when deleting a warehouse, need to delete all the inventory in it
@@ -205,7 +205,7 @@ func (pr *Warehouse) UpdateWarehouse(c *gin.Context) {
 	}
 
 	// Check if the Warehouse exists
-	pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence)
+	pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence, c)
 
 	existingWarehouse, err := pr.WarehouseRepo.GetWarehouse(warehouseID)
 	if err != nil {
@@ -219,7 +219,7 @@ func (pr *Warehouse) UpdateWarehouse(c *gin.Context) {
 		return
 	}
 
-	pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence)
+	pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence, c)
 
 	// Update the Warehouse
 	updatedWarehouse, updateErr := pr.WarehouseRepo.UpdateWarehouse(existingWarehouse)
@@ -249,7 +249,7 @@ func (pr *Warehouse) SearchWarehouse(c *gin.Context) {
 		c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "", gin.H{}))
 		return
 	}
-	pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence)
+	pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence, c)
 
 	warehouses, searchErr := pr.WarehouseRepo.SearchWarehouse(WarehousesName)
 	if searchErr != nil {
@@ -269,7 +269,7 @@ func (pr *Warehouse) SearchWarehouse(c *gin.Context) {
 
 
 func (pr *Warehouse) UpdateWarehouseSearchDB() {
-	pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence)
+	pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence, &gin.Context{})
 	updateErr := pr.WarehouseRepo.UpdateWarehousesInSearchDB()
 
 	if updateErr != nil {

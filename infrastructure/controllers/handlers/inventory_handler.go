@@ -48,7 +48,7 @@ func (inv *Inventory) GetInventory(c *gin.Context) {
 		return
 	}
 
-	inv.inventoryHandlerRepo = application.NewInventoryApplication(inv.Persistence)
+	inv.inventoryHandlerRepo = application.NewInventoryApplication(inv.Persistence, c)
 
 	inventory, err := inv.inventoryHandlerRepo.GetInventory(productID)
 	if err != nil {
@@ -83,7 +83,7 @@ func (inv *Inventory) UpdateInventory(c *gin.Context) {
 	}
 
 	// Check if the inventory exists
-	inv.inventoryHandlerRepo = application.NewInventoryApplication(inv.Persistence)
+	inv.inventoryHandlerRepo = application.NewInventoryApplication(inv.Persistence, c)
 
 	existingInventory, err := inv.inventoryHandlerRepo.GetInventory(productIDofInventory)
 	if err != nil {
@@ -97,7 +97,7 @@ func (inv *Inventory) UpdateInventory(c *gin.Context) {
 		return
 	}
 
-	inv.inventoryHandlerRepo = application.NewInventoryApplication(inv.Persistence)
+	inv.inventoryHandlerRepo = application.NewInventoryApplication(inv.Persistence, c)
 
 	// Update the inventory
 	updatedInventory, updateErr := inv.inventoryHandlerRepo.UpdateInventory(existingInventory)

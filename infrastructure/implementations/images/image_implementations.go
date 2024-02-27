@@ -1,6 +1,7 @@
 package images
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -19,10 +20,11 @@ import (
 // Image Repository struct
 type ImageRepo struct {
 	p *base.Persistence
+	c context.Context
 }
 
-func NewImageRepository(p *base.Persistence) *ImageRepo {
-	return &ImageRepo{p}
+func NewImageRepository(p *base.Persistence, c context.Context) *ImageRepo {
+	return &ImageRepo{p, c}
 }
 
 

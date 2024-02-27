@@ -35,7 +35,7 @@ func AuthHandler(p *base.Persistence) gin.HandlerFunc {
 	   // Validate token	
   
 	   keyJWT := os.Getenv("JWT_SECRET")
-	   v2, err2 := auth.NewAuthRepository(p).ValidateToken(t[1], keyJWT)
+	   v2, err2 := auth.NewAuthRepository(p, c).ValidateToken(t[1], keyJWT)
  
 	   if (err2 != nil) || (v2 != nil && !v2.Valid) {
 		  c.JSON(http.StatusForbidden, gin.H{"message": "Invalid authorization token", "status": entity.StatusError, "data": nil})
@@ -57,7 +57,7 @@ func AuthHandler(p *base.Persistence) gin.HandlerFunc {
 	   }
 
 	   // Check redis blacklist tokens
-	   isBlacklisted := auth.NewAuthRepository(p).CheckBlacklistToken(t[1])
+	   isBlacklisted := auth.NewAuthRepository(p, c).CheckBlacklistToken(t[1])
 	   if userID == "" || isBlacklisted == nil {
 		  c.JSON(http.StatusForbidden, gin.H{"message": "Invalid authorization token", "status": entity.StatusError, "data": nil})
 		  c.Abort()

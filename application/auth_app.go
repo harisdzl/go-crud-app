@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"errors"
 	"os"
 
@@ -13,14 +14,15 @@ import (
 
 type AuthApp struct {
 	p *base.Persistence
+	c context.Context
 }
 
-func NewAuthApplication(p *base.Persistence) auth_repository.AuthHandlerRepository {
-	return &AuthApp{p}
+func NewAuthApplication(p *base.Persistence, c context.Context) auth_repository.AuthHandlerRepository {
+	return &AuthApp{p, c}
 }
 
 func (a *AuthApp) AuthenticateUser(username string, password string) (string, *customer_entity.Customer, error) {
-	authRepo := auth.NewAuthRepository(a.p)
+	authRepo := auth.NewAuthRepository(a.p, a.c)
 	customer, err := authRepo.GetCustomerWithUsername(username)
 
 	if err != nil {
@@ -49,6 +51,6 @@ func (a *AuthApp) AuthenticateUser(username string, password string) (string, *c
 }
 
 func (a *AuthApp) BlacklistToken(token string) error {
-	authRepo := auth.NewAuthRepository(a.p)
+	authRepo := auth.NewAuthRepository(a.p, a.c)
 	return authRepo.BlacklistToken(token)
 }

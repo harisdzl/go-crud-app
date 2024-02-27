@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -14,11 +15,12 @@ import (
 
 type AuthRepo struct {
 	p *base.Persistence
+	c context.Context
 }
 
 
-func NewAuthRepository(p *base.Persistence) *AuthRepo {
-	return &AuthRepo{p}
+func NewAuthRepository(p *base.Persistence, c context.Context) *AuthRepo {
+	return &AuthRepo{p, c}
 }
 
 

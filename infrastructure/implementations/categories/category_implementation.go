@@ -1,6 +1,7 @@
 package categories
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -17,10 +18,11 @@ import (
 // Product Repository struct
 type CategoryRepo struct {
 	p *base.Persistence
+	c context.Context
 }
 
-func NewCategoryRepository(p *base.Persistence) *CategoryRepo {
-	return &CategoryRepo{p}
+func NewCategoryRepository(p *base.Persistence, c context.Context) *CategoryRepo {
+	return &CategoryRepo{p, c}
 }
 
 // To explicitly check that the ProductRepo implements the repository.ProductRepository interface

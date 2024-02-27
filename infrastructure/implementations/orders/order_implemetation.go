@@ -1,6 +1,7 @@
 package orders
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -9,20 +10,26 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/order_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/cache"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
+	"go.opentelemetry.io/otel"
 	"gorm.io/gorm"
 )
 
 type OrderRepo struct {
 	p *base.Persistence
+	c context.Context
 }
 
-func NewOrderRepository(p *base.Persistence) *OrderRepo {
-	return &OrderRepo{p}
+func NewOrderRepository(p *base.Persistence, c context.Context) *OrderRepo {
+	return &OrderRepo{p, c}
 }
 
 var _ order_repository.OrderRepository = &OrderRepo{}
 
 func (o *OrderRepo) SaveOrder(tx *gorm.DB, order *order_entity.Order) (*order_entity.Order, error) {
+	tracer := otel.Tracer("implementations.orders.SaveOrder")
+	_, span := tracer.Start(o.c, "implementations.orders.SaveOrderFromRaw")
+	defer span.End()
+
 	if tx == nil {
 		var errTx error
 		tx := o.p.DB.Begin()
@@ -46,6 +53,7 @@ func (o *OrderRepo) SaveOrder(tx *gorm.DB, order *order_entity.Order) (*order_en
 	}
 	err := tx.Debug().Create(&order).Error
 	if err != nil {
+		span.RecordError(err)
 		fmt.Println("Failed to create order")
 		fmt.Println(err)
 		return nil, err

@@ -1,6 +1,7 @@
 package customers
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -14,10 +15,11 @@ import (
 
 type CustomerRepo struct {
 	p *base.Persistence
+	c context.Context
 }
 
-func NewCustomerRepository(p *base.Persistence) *CustomerRepo {
-	return &CustomerRepo{p}
+func NewCustomerRepository(p *base.Persistence, c context.Context) *CustomerRepo {
+	return &CustomerRepo{p, c}
 }
 
 var _ customer_repository.CustomerRepository = &CustomerRepo{}

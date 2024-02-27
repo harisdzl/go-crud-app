@@ -49,7 +49,7 @@ func (ca *Category) SaveCategory(c *gin.Context) {
         return
     }
 
-	ca.CategoryRepo = application.NewCategoryApplication(ca.Persistence)
+	ca.CategoryRepo = application.NewCategoryApplication(ca.Persistence, c)
 	savedCategory, savedCategoryErr := ca.CategoryRepo.SaveCategory(&category)
 
 	if savedCategoryErr != nil {
@@ -81,7 +81,7 @@ func (ca *Category) GetCategory(c *gin.Context) {
 		return
 	}
 
-	ca.CategoryRepo = application.NewCategoryApplication(ca.Persistence)
+	ca.CategoryRepo = application.NewCategoryApplication(ca.Persistence, c)
 
 	category, err := ca.CategoryRepo.GetCategory(categoryID)
 	if err != nil {
@@ -102,7 +102,7 @@ func (ca *Category) GetCategory(c *gin.Context) {
 //	@Router			/categories [get]
 func (ca *Category) GetAllCategories(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
-	ca.CategoryRepo = application.NewCategoryApplication(ca.Persistence)
+	ca.CategoryRepo = application.NewCategoryApplication(ca.Persistence, c)
 
 	allCategories, err := ca.CategoryRepo.GetAllCategories()
 	if err != nil {
@@ -127,7 +127,7 @@ func (ca *Category) GetAllCategories(c *gin.Context) {
 //	@Router			/category/{category_id}/parents [get]
 func (ca *Category) GetParentCategories(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
-	ca.CategoryRepo = application.NewCategoryApplication(ca.Persistence)
+	ca.CategoryRepo = application.NewCategoryApplication(ca.Persistence, c)
 	childCategoryId, err := strconv.ParseInt((c.Param("category_id")), 10, 64)
 
 	if err != nil {
@@ -169,7 +169,7 @@ func (ca *Category) DeleteCategory(c *gin.Context) {
 		return
 	}
 
-	ca.CategoryRepo = application.NewCategoryApplication(ca.Persistence)
+	ca.CategoryRepo = application.NewCategoryApplication(ca.Persistence, c)
 
 	deleteErr := ca.CategoryRepo.DeleteCategory(categoryID)
 	if deleteErr != nil {
@@ -204,7 +204,7 @@ func (ca *Category) UpdateCategory(c *gin.Context) {
 	}
 
 	// Check if the category exists
-	ca.CategoryRepo = application.NewCategoryApplication(ca.Persistence)
+	ca.CategoryRepo = application.NewCategoryApplication(ca.Persistence, c)
 
 	existingCategory, err := ca.CategoryRepo.GetCategory(categoryID)
 	if err != nil {
@@ -218,7 +218,7 @@ func (ca *Category) UpdateCategory(c *gin.Context) {
 		return
 	}
 
-	ca.CategoryRepo = application.NewCategoryApplication(ca.Persistence)
+	ca.CategoryRepo = application.NewCategoryApplication(ca.Persistence, c)
 
 	// Update the category
 	updatedCategory, updateErr := ca.CategoryRepo.UpdateCategory(existingCategory)

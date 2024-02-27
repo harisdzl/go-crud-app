@@ -1,15 +1,16 @@
 package inventories
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/inventory_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/inventory_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/cache"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
+	"go.opentelemetry.io/otel"
 	"gorm.io/gorm"
 )
 
@@ -18,10 +19,11 @@ import (
 // Inventory Repository struct
 type InventoryRepo struct {
 	p *base.Persistence
+	c context.Context
 }
 
-func NewInventoryRepository(p *base.Persistence) *InventoryRepo {
-	return &InventoryRepo{p}
+func NewInventoryRepository(p *base.Persistence, c context.Context) *InventoryRepo {
+	return &InventoryRepo{p, c}
 }
 
 // To explicitly check that the InventoryRepo implements the repository.InventoryRepository interface
@@ -119,11 +121,15 @@ func (r *InventoryRepo) DeleteInventory(id int64) error {
 
 func (r *InventoryRepo) ReduceInventory(tx *gorm.DB, id int64, quantityOrdered int64) error {
 	// Update inventory stock directly in the database
+	tracer := otel.Tracer("implementations.inventories.ReduceInventory")
+	_, span := tracer.Start(r.c, "implementations.inventories.ReduceInventory")
+	defer span.End()
 
 	if tx == nil {
 		var errTx error
 		tx := r.p.DB.Begin()
 		if tx.Error != nil {
+			span.RecordError(tx.Error)
 			return errors.New("failed to start transaction")
 		}
 	
@@ -143,10 +149,12 @@ func (r *InventoryRepo) ReduceInventory(tx *gorm.DB, id int64, quantityOrdered i
 	}
 	inventory, invErr := r.GetInventory(id)
 	if invErr != nil {
+		span.RecordError(invErr)
 		return invErr
 	}
 
 	if inventory.Stock < int(quantityOrdered) {
+		span.RecordError(fmt.Errorf("not enough stock. Maximum quantity is %v", inventory.Stock))
 		return fmt.Errorf("not enough stock. Maximum quantity is %v", inventory.Stock)
 	}
 	result := tx.Model(&inventory).
@@ -159,12 +167,13 @@ func (r *InventoryRepo) ReduceInventory(tx *gorm.DB, id int64, quantityOrdered i
 
 	// Check if any rows were affected
 	if result.RowsAffected == 0 {
+		span.RecordError(errors.New("inventory not found"))
 		return errors.New("inventory not found")
 	}
 
 	// Check if the stock is negative after reduction
 	if result.RowsAffected < 0 {
-		log.Println("Not enough stock")
+		span.RecordError(errors.New("not enough stock"))
 		return errors.New("not enough stock")
 	}
 

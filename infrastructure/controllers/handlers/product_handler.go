@@ -44,7 +44,7 @@ func NewProduct(p *base.Persistence) *Product {
 //	@Accept			json
 //	@Produce		json
 //	@Param			product	body		product_entity.Product		true	"Product object to be saved"
-//	@Success		201		{object}	product_entity.Product		"Successfully saved product"
+//	@Success		200		{object}	product_entity.Product		"Successfully saved product"
 //	@Failure		400		{object}	map[string]string	"Invalid JSON"
 //	@Failure		422		{object}	map[string]string	"Unprocessable entity"
 //	@Router			/products [post]
@@ -58,7 +58,7 @@ func (pr *Product) SaveProduct(c *gin.Context) {
         return
     }
 
-    pr.productRepo = application.NewProductApplication(pr.Persistence)
+    pr.productRepo = application.NewProductApplication(pr.Persistence, c)
 
     // Call the application layer method to save the product
 	savedProduct, savedInventory, saveErr := pr.productRepo.SaveProductAndInventory(productForInventory)
@@ -74,7 +74,7 @@ func (pr *Product) SaveProduct(c *gin.Context) {
 
 	
     // Send the saved product as JSON response
-    c.JSON(http.StatusCreated, responseContextData.ResponseData(entity.StatusSuccess, "", response))
+    c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "", response))
 }
 // func (pr *Product) SaveMultipleProducts(c *gin.Context) {
 // 	var product = []product_entity.Product{}
@@ -87,7 +87,7 @@ func (pr *Product) SaveProduct(c *gin.Context) {
 // 	}
 
 // 	fmt.Println(product)
-// 	pr.productRepo = application.NewProductApplication(pr.Persistence)
+// 	pr.productRepo = application.NewProductApplication(pr.Persistence, c)
 
 // 	savedProduct, saveErr := pr.productRepo.SaveMultipleProducts(&product)
 // 	if saveErr != nil {
@@ -109,7 +109,7 @@ func (pr *Product) SaveProduct(c *gin.Context) {
 //	@Router			/products [get]
 func (pr *Product) GetAllProducts(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
-	pr.productRepo = application.NewProductApplication(pr.Persistence)
+	pr.productRepo = application.NewProductApplication(pr.Persistence, c)
 
 	allProduct, err := pr.productRepo.GetAllProducts()
 	if err != nil {
@@ -144,7 +144,7 @@ func (pr *Product) GetProduct(c *gin.Context) {
 		return
 	}
 
-	pr.productRepo = application.NewProductApplication(pr.Persistence)
+	pr.productRepo = application.NewProductApplication(pr.Persistence, c)
 
 	product, getErr := pr.productRepo.GetProduct(productId)
 	if getErr != nil {
@@ -174,7 +174,7 @@ func (pr *Product) DeleteProduct(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, responseContextData.ResponseData(entity.StatusFail, err.Error(), ""))
 		return
 	}
-	pr.productRepo = application.NewProductApplication(pr.Persistence)
+	pr.productRepo = application.NewProductApplication(pr.Persistence, c)
 
 	deleteErr := pr.productRepo.DeleteProduct(productId)
 	if deleteErr != nil {
@@ -208,7 +208,7 @@ func (pr *Product) UpdateProduct(c *gin.Context) {
 	}
 
 	// Check if the product exists
-	pr.productRepo = application.NewProductApplication(pr.Persistence)
+	pr.productRepo = application.NewProductApplication(pr.Persistence, c)
 
 	existingProduct, err := pr.productRepo.GetProduct(productId)
 	if err != nil {
@@ -222,7 +222,7 @@ func (pr *Product) UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	pr.productRepo = application.NewProductApplication(pr.Persistence)
+	pr.productRepo = application.NewProductApplication(pr.Persistence, c)
 
 	// Update the product
 	updatedProduct, updateErr := pr.productRepo.UpdateProduct(existingProduct)
@@ -252,7 +252,7 @@ func (pr *Product) SearchProduct(c *gin.Context) {
 		c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "", gin.H{}))
 		return
 	}
-	pr.productRepo = application.NewProductApplication(pr.Persistence)
+	pr.productRepo = application.NewProductApplication(pr.Persistence, c)
 
 	products, searchErr := pr.productRepo.SearchProduct(productsName)
 	if searchErr != nil {
@@ -269,7 +269,7 @@ func (pr *Product) SearchProduct(c *gin.Context) {
 }
 
 func (pr *Product) UpdateProductSearchDB() {
-	pr.productRepo = application.NewProductApplication(pr.Persistence)
+	pr.productRepo = application.NewProductApplication(pr.Persistence, &gin.Context{})
 	updateErr := pr.productRepo.UpdateProductsInSearchDB()
 
 	if updateErr != nil {

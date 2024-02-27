@@ -1,6 +1,8 @@
 package application
 
 import (
+	"context"
+
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/inventory_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/product_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/product_repository"
@@ -11,10 +13,11 @@ import (
 
 type productApp struct {
 	p *base.Persistence
+	c context.Context
 }
 
-func NewProductApplication(p *base.Persistence) product_repository.ProductHandlerRepository {
-	return &productApp{p}
+func NewProductApplication(p *base.Persistence, c context.Context) product_repository.ProductHandlerRepository {
+	return &productApp{p, c}
 }
 
 func ConvertProductandInventory(productForInventory product_entity.ProductForInventory) (product_entity.Product, inventory_entity.Inventory){
@@ -36,8 +39,8 @@ func ConvertProductandInventory(productForInventory product_entity.ProductForInv
 }
 func (a *productApp) SaveProductAndInventory(productForInventory product_entity.ProductForInventory) (*product_entity.Product, *inventory_entity.Inventory, map[string]string) {
     product, inventory := ConvertProductandInventory(productForInventory)
-    repoProduct := products.NewProductRepository(a.p)
-    repoInventory := inventories.NewInventoryRepository(a.p)
+    repoProduct := products.NewProductRepository(a.p, a.c)
+    repoInventory := inventories.NewInventoryRepository(a.p, a.c)
     savedProduct, saveErr := repoProduct.SaveProduct(&product)
     if saveErr != nil {
         return nil, nil, saveErr
@@ -52,32 +55,32 @@ func (a *productApp) SaveProductAndInventory(productForInventory product_entity.
 
 
 func (a *productApp) GetProduct(productId int64) (*product_entity.Product, error) {
-	repoProduct := products.NewProductRepository(a.p)
+	repoProduct := products.NewProductRepository(a.p, a.c)
 	return repoProduct.GetProduct(productId)
 }
 
 func (a *productApp) GetAllProducts() ([]product_entity.Product, error) {
-	repoProduct := products.NewProductRepository(a.p)
+	repoProduct := products.NewProductRepository(a.p, a.c)
 	return repoProduct.GetAllProducts()
 }
 	
 func (a *productApp) UpdateProduct(product *product_entity.Product) (*product_entity.Product, error) {
-	repoProduct := products.NewProductRepository(a.p)
+	repoProduct := products.NewProductRepository(a.p, a.c)
 	return repoProduct.UpdateProduct(product)
 }
 
 func (a *productApp) DeleteProduct(productId int64) error {
-	repoProduct := products.NewProductRepository(a.p)
+	repoProduct := products.NewProductRepository(a.p, a.c)
 	return repoProduct.DeleteProduct(productId)
 }
 
 func (a *productApp) SearchProduct(name string) ([]product_entity.Product, error) {
-	repoProduct := products.NewProductRepository(a.p)
+	repoProduct := products.NewProductRepository(a.p, a.c)
 	return repoProduct.SearchProduct(name)
 }
 
 func (a *productApp) UpdateProductsInSearchDB() (error) {
-	repoProduct := products.NewProductRepository(a.p)
+	repoProduct := products.NewProductRepository(a.p, a.c)
 	return repoProduct.UpdateProductsInSearchDB()
 }
 

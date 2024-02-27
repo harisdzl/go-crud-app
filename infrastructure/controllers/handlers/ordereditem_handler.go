@@ -40,7 +40,7 @@ func NewOrderedItem(p *base.Persistence) *OrderedItem {
 //	@Router			/ordereditems [get]
 func (or OrderedItem) GetAllOrderedItems(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
-	or.OrderedItemRepo = application.NewOrderedItemApplication(or.Persistence)
+	or.OrderedItemRepo = application.NewOrderedItemApplication(or.Persistence, c)
 
 	allOrderedItems, err := or.OrderedItemRepo.GetAllOrderedItems()
 	if err != nil {
@@ -75,7 +75,7 @@ func (or OrderedItem) GetAllOrderedItemsForOrder(c *gin.Context) {
 		return
 	}
 
-	or.OrderedItemRepo = application.NewOrderedItemApplication(or.Persistence)
+	or.OrderedItemRepo = application.NewOrderedItemApplication(or.Persistence, c)
 
 	orderedItems, err := or.OrderedItemRepo.GetAllOrderedItemsForOrder(orderId)
 	if err != nil {

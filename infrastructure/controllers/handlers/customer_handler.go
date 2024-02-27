@@ -49,7 +49,7 @@ func (cr Customer) SaveCustomer(c *gin.Context) {
 		return
 	}
 
-	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence)
+	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence, c)
 
 	savedCustomer, saveErr := cr.CustomerRepo.SaveCustomer(&customer)
 
@@ -71,7 +71,7 @@ func (cr Customer) SaveCustomer(c *gin.Context) {
 //	@Router			/customers [get]
 func (cr Customer) GetAllCustomers(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
-	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence)
+	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence, c)
 
 	allCustomers, err := cr.CustomerRepo.GetAllCustomers()
 	if err != nil {
@@ -105,7 +105,7 @@ func (cr Customer) GetCustomer(c *gin.Context) {
 		return
 	}
 
-	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence)
+	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence, c)
 
 	customer, err := cr.CustomerRepo.GetCustomer(customerID)
 	if err != nil {
@@ -134,7 +134,7 @@ func (cr Customer) DeleteCustomer(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, responseContextData.ResponseData(entity.StatusFail, err.Error(), ""))
 		return
 	}
-	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence)
+	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence, c)
 
 	deleteErr := cr.CustomerRepo.DeleteCustomer(customerID)
 	// TODO: when deleting a customer, need to delete all the inventory in it
@@ -170,7 +170,7 @@ func (cr Customer) UpdateCustomer(c *gin.Context) {
 	}
 
 	// Check if the Customer exists
-	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence)
+	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence, c)
 
 	existingCustomer, err := cr.CustomerRepo.GetCustomer(customerID)
 	if err != nil {
@@ -184,7 +184,7 @@ func (cr Customer) UpdateCustomer(c *gin.Context) {
 		return
 	}
 
-	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence)
+	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence, c)
 
 	// Update the Customer
 	updatedCustomer, updateErr := cr.CustomerRepo.UpdateCustomer(existingCustomer)

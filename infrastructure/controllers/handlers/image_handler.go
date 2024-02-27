@@ -64,7 +64,7 @@ func (im *Image) SaveImage(c *gin.Context) {
 		return
 	}
 
-	im.ImageRepo = application.NewImageApplication(im.Persistence)
+	im.ImageRepo = application.NewImageApplication(im.Persistence, c)
 	processedImage, processedImageErr := im.ImageRepo.SaveImage(&rawImage)
 
 	if processedImageErr != nil {
@@ -107,7 +107,7 @@ func (im *Image) GetImage(c *gin.Context) {
 		return
 	}
 
-	im.ImageRepo = application.NewImageApplication(im.Persistence)
+	im.ImageRepo = application.NewImageApplication(im.Persistence, c)
 
 	image, err := im.ImageRepo.GetImage(imageID)
 	if err != nil {
@@ -129,7 +129,7 @@ func (im *Image) GetImage(c *gin.Context) {
 //	@Router			/products/{product_id}/images [get]
 func (im *Image) GetAllImagesOfProduct(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
-	im.ImageRepo = application.NewImageApplication(im.Persistence)
+	im.ImageRepo = application.NewImageApplication(im.Persistence, c)
 	productID, err := strconv.ParseInt((c.Param("product_id")), 10, 64)
 
 	allImages, err := im.ImageRepo.GetAllImagesOfProduct(productID)
@@ -155,7 +155,7 @@ func (im *Image) GetAllImagesOfProduct(c *gin.Context) {
 //	@Router			/images/{image_id} [delete]
 func (im *Image) DeleteImage(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
-	im.ImageRepo = application.NewImageApplication(im.Persistence)
+	im.ImageRepo = application.NewImageApplication(im.Persistence, c)
 
 	deleteErr := im.ImageRepo.DeleteImage("images", c.Param("image_id"))
 	if deleteErr != nil {

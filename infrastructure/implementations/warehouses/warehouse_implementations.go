@@ -1,6 +1,7 @@
 package warehouses
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -18,10 +19,11 @@ import (
 // warehouse Repository struct
 type WarehouseRepo struct {
 	p *base.Persistence
+	c context.Context
 }
 
-func NewWareHouseRepository(p *base.Persistence) *WarehouseRepo {
-	return &WarehouseRepo{p}
+func NewWareHouseRepository(p *base.Persistence, c context.Context) *WarehouseRepo {
+	return &WarehouseRepo{p, c}
 }
 
 // To explicitly check that the WarehouseRepo implements the repository.WarehouseRepository interface
