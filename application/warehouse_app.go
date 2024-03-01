@@ -12,10 +12,10 @@ import (
 
 type warehouseApp struct {
 	p *base.Persistence
-	c context.Context
+	c *context.Context
 }
 
-func NewWarehouseApplication(p *base.Persistence, c context.Context) warehouse_repository.WarehouseRepository {
+func NewWarehouseApplication(p *base.Persistence, c *context.Context) warehouse_repository.WarehouseRepository {
 	return &warehouseApp{p, c}
 }
 

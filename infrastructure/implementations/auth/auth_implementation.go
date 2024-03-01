@@ -15,11 +15,11 @@ import (
 
 type AuthRepo struct {
 	p *base.Persistence
-	c context.Context
+	c *context.Context
 }
 
 
-func NewAuthRepository(p *base.Persistence, c context.Context) *AuthRepo {
+func NewAuthRepository(p *base.Persistence, c *context.Context) *AuthRepo {
 	return &AuthRepo{p, c}
 }
 

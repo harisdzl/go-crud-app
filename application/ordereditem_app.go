@@ -13,10 +13,10 @@ import (
 
 type OrderedItemApp struct {
 	p *base.Persistence
-	c context.Context
+	c *context.Context
 }
 
-func NewOrderedItemApplication(p *base.Persistence, c context.Context) ordereditem_repository.OrderedItemRepository {
+func NewOrderedItemApplication(p *base.Persistence, c *context.Context) ordereditem_repository.OrderedItemRepository {
 	return &OrderedItemApp{p, c}
 }
 

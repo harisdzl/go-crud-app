@@ -10,6 +10,7 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/product_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/product_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/cache"
+	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/search"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 	"gorm.io/gorm"
@@ -20,10 +21,10 @@ import (
 // Product Repository struct
 type ProductRepo struct {
 	p *base.Persistence
-	c context.Context
+	c *context.Context
 }
 
-func NewProductRepository(p *base.Persistence, c context.Context) *ProductRepo {
+func NewProductRepository(p *base.Persistence, c *context.Context) *ProductRepo {
 	return &ProductRepo{p, c}
 }
 
@@ -94,13 +95,23 @@ func (r *ProductRepo) SaveProduct(product *product_entity.Product) (*product_ent
 // }
 
 func (r *ProductRepo) GetProduct(id int64) (*product_entity.Product, error) {
+	channels := []string{"Zap", "Honeycomb"}
+	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, r.p, r.c, "implementations/GetProduct")
+
+	if loggerErr != nil {
+		return nil, loggerErr
+	}
+	defer loggerRepo.Span.End()
+	
 	var product *product_entity.Product
 
+	
 	cacheRepo := cache.NewCacheRepository("Redis", r.p)
 	_ = cacheRepo.GetKey(fmt.Sprintf("%v_PRODUCTS", id), &product)
 	if product == nil {
 		err := r.p.DB.Debug().Where("id = ?", id).Take(&product).Error
 		if err != nil {
+			// tracer.Span.RecordError(err)
 			fmt.Println("Failed to get product")
 			return nil, err
 		}
@@ -109,6 +120,7 @@ func (r *ProductRepo) GetProduct(id int64) (*product_entity.Product, error) {
 		}
 	}
 
+	loggerRepo.Info("Product retrieved", map[string]interface{}{"data": product})
 
 	return product, nil
 }

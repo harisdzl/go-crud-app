@@ -41,6 +41,7 @@ func NewInventory(p *base.Persistence) *Inventory {
 func (inv *Inventory) GetInventory(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	productID, err := strconv.ParseInt((c.Param("product_id")), 10, 64)
+	ctx := c.Request.Context()
 
 	if err != nil {
 		fmt.Println(err)
@@ -48,7 +49,7 @@ func (inv *Inventory) GetInventory(c *gin.Context) {
 		return
 	}
 
-	inv.inventoryHandlerRepo = application.NewInventoryApplication(inv.Persistence, c)
+	inv.inventoryHandlerRepo = application.NewInventoryApplication(inv.Persistence, &ctx)
 
 	inventory, err := inv.inventoryHandlerRepo.GetInventory(productID)
 	if err != nil {
@@ -75,6 +76,7 @@ func (inv *Inventory) GetInventory(c *gin.Context) {
 func (inv *Inventory) UpdateInventory(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	productIDofInventory, err := strconv.ParseInt(c.Param("product_id"), 10, 64)
+	ctx := c.Request.Context()
 
 	if err != nil {
 		fmt.Println(err)
@@ -83,7 +85,7 @@ func (inv *Inventory) UpdateInventory(c *gin.Context) {
 	}
 
 	// Check if the inventory exists
-	inv.inventoryHandlerRepo = application.NewInventoryApplication(inv.Persistence, c)
+	inv.inventoryHandlerRepo = application.NewInventoryApplication(inv.Persistence, &ctx)
 
 	existingInventory, err := inv.inventoryHandlerRepo.GetInventory(productIDofInventory)
 	if err != nil {
@@ -97,7 +99,7 @@ func (inv *Inventory) UpdateInventory(c *gin.Context) {
 		return
 	}
 
-	inv.inventoryHandlerRepo = application.NewInventoryApplication(inv.Persistence, c)
+	inv.inventoryHandlerRepo = application.NewInventoryApplication(inv.Persistence, &ctx)
 
 	// Update the inventory
 	updatedInventory, updateErr := inv.inventoryHandlerRepo.UpdateInventory(existingInventory)

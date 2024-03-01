@@ -14,10 +14,10 @@ import (
 
 type AuthApp struct {
 	p *base.Persistence
-	c context.Context
+	c *context.Context
 }
 
-func NewAuthApplication(p *base.Persistence, c context.Context) auth_repository.AuthHandlerRepository {
+func NewAuthApplication(p *base.Persistence, c *context.Context) auth_repository.AuthHandlerRepository {
 	return &AuthApp{p, c}
 }
 

@@ -19,10 +19,10 @@ import (
 // warehouse Repository struct
 type WarehouseRepo struct {
 	p *base.Persistence
-	c context.Context
+	c *context.Context
 }
 
-func NewWareHouseRepository(p *base.Persistence, c context.Context) *WarehouseRepo {
+func NewWareHouseRepository(p *base.Persistence, c *context.Context) *WarehouseRepo {
 	return &WarehouseRepo{p, c}
 }
 

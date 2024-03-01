@@ -7,6 +7,7 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/customer_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/image_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/inventory_entity"
+	"github.com/harisquqo/quqo-challenge-1/domain/entity/logger_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/order_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/ordereditem_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/product_entity"
@@ -26,6 +27,7 @@ type Persistence struct {
 	DbMongo *mongo.Client
 	DbOpensearch *opensearch.Client
 	DbSupabase *storage_go.Client
+	Logger *logger_entity.Logger
 }
 
 // Function to create a new repository
@@ -35,6 +37,7 @@ func NewPersistence() (*Persistence, error) {
 	mongoDb, errMongoDb := db.NewMongoDB()
 	opensearchDb, errOpensearchDb := db.NewOpenSearchDB()
 	supabaseDb, errSupabaseDb := db.NewSupabaseDB()
+	logger, errLogger := db.NewLogger()
 
 	if errDatabase != nil {
 		log.Fatal(errDatabase)
@@ -56,6 +59,11 @@ func NewPersistence() (*Persistence, error) {
 		log.Fatal(errSupabaseDb)
 	}
 
+	if errSupabaseDb != nil {
+		log.Fatal(errLogger)
+	}
+
+
 
 
 	return &Persistence{
@@ -64,6 +72,7 @@ func NewPersistence() (*Persistence, error) {
 		DbMongo: mongoDb,
 		DbOpensearch: opensearchDb,
 		DbSupabase: supabaseDb,
+		Logger: logger, 
 	}, nil
 
 }

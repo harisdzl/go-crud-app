@@ -26,5 +26,5 @@ func main() {
 
 	router := routes.InitRouter(p)
 
-    router.Run()
+    router.Run(":8080")
 }

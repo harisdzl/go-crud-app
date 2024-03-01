@@ -11,8 +11,8 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/domain/entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/order_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/order_repository"
+	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
-	"go.opentelemetry.io/otel"
 )
 
 type Order struct {
@@ -28,11 +28,14 @@ func NewOrder(p *base.Persistence) *Order {
 
 func (or Order) SaveOrder(c *gin.Context) {
 	// Start a new span for the handler function
-	tracer := otel.Tracer("handlers.SaveOrder")
-    ctx, parentSpan := tracer.Start(c.Request.Context(), "handler.SaveOrder")
-    defer parentSpan.End()
-
-
+	channels := []string{"Zap", "Honeycomb"}
+	ctx := c.Request.Context()
+	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, or.Persistence, &ctx, "handlers/SaveOrder")
+	defer loggerRepo.Span.End()
+	if loggerErr != nil {
+		loggerRepo.Warn("Error in initializing logger", map[string]interface{}{})
+	}
+	
 	responseContextData := entity.ResponseContext{Ctx: c}
 	rawOrder := order_entity.RawOrder{}
 	userIdString := c.GetString("userID")
@@ -40,31 +43,35 @@ func (or Order) SaveOrder(c *gin.Context) {
 
 	if userIdErr != nil {
 		// Log error within the span
-		parentSpan.RecordError(userIdErr)
 		c.JSON(http.StatusUnprocessableEntity, responseContextData.ResponseData(entity.StatusFail, "Invalid user", ""))
 		return
 	}
 
 	rawOrder.CustomerID = userId
 	if err := c.ShouldBindJSON(&rawOrder); err != nil {
-		// Log error within the parentSpan
-		parentSpan.RecordError(err)
+		// Log error within the span
 		log.Println(err)
 		c.JSON(http.StatusUnprocessableEntity, responseContextData.ResponseData(entity.StatusFail, "Invalid JSON", ""))
 		return
 	}
 
-	or.OrderRepo = application.NewOrderApplication(or.Persistence, ctx)
-	savedOrder, saveErr := or.OrderRepo.SaveOrderFromRaw(rawOrder)
 
+	or.OrderRepo = application.NewOrderApplication(or.Persistence, loggerRepo.Context)
+	savedOrder, saveErr := or.OrderRepo.SaveOrderFromRaw(rawOrder)
 	if saveErr != nil {
 		// Log error within the span
-		parentSpan.RecordError(saveErr)
 		c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, saveErr.Error(), ""))
 		return
 	}
 
-	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "Order saved successfully", savedOrder))
+	results := map[string]interface{}{
+		"user_ip" : c.ClientIP(),
+		"user_id" : userId,
+		"json_data": savedOrder,
+	}
+
+	loggerRepo.Info("Order saved successfully", results)
+	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "Order saved successfully", &savedOrder))
 }
 
 //	@Summary		Get All Orders
@@ -77,7 +84,9 @@ func (or Order) SaveOrder(c *gin.Context) {
 //	@Router			/orders [get]
 func (or Order) GetAllOrders(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
-	or.OrderRepo = application.NewOrderApplication(or.Persistence, c)
+	ctx := c.Request.Context()
+
+	or.OrderRepo = application.NewOrderApplication(or.Persistence, &ctx)
 
 	allOrders, err := or.OrderRepo.GetAllOrders()
 	if err != nil {
@@ -105,6 +114,7 @@ func (or Order) GetAllOrders(c *gin.Context) {
 func (or Order) GetOrder(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	orderID, err := strconv.ParseInt(c.Param("order_id"), 10, 64)
+	ctx := c.Request.Context()
 
 	if err != nil {
 		fmt.Println(err)
@@ -112,7 +122,7 @@ func (or Order) GetOrder(c *gin.Context) {
 		return
 	}
 
-	or.OrderRepo = application.NewOrderApplication(or.Persistence, c)
+	or.OrderRepo = application.NewOrderApplication(or.Persistence, &ctx)
 
 	order, err := or.OrderRepo.GetOrder(orderID)
 	if err != nil {
@@ -136,12 +146,14 @@ func (or Order) GetOrder(c *gin.Context) {
 func (or Order) DeleteOrder(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	orderID, err := strconv.ParseInt(c.Param("order_id"), 10, 64)
+	ctx := c.Request.Context()
+
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(http.StatusBadRequest, responseContextData.ResponseData(entity.StatusFail, err.Error(), ""))
 		return
 	}
-	or.OrderRepo = application.NewOrderApplication(or.Persistence, c)
+	or.OrderRepo = application.NewOrderApplication(or.Persistence, &ctx)
 
 	if err != nil {
 		fmt.Println(err)
@@ -151,14 +163,14 @@ func (or Order) DeleteOrder(c *gin.Context) {
 
 	deleteErr := or.OrderRepo.DeleteOrder(orderID)
 	// TODO: when deleting a order, need to delete all the inventory in it
-	orderedItems, orderedItemsErr := application.NewOrderedItemApplication(or.Persistence, c).GetAllOrderedItemsForOrder(orderID)
+	orderedItems, orderedItemsErr := application.NewOrderedItemApplication(or.Persistence, &ctx).GetAllOrderedItemsForOrder(orderID)
 	if orderedItemsErr != nil {	
 		fmt.Println(err)
 		c.JSON(http.StatusBadRequest, responseContextData.ResponseData(entity.StatusFail, err.Error(), ""))
 		return
 	}
 
-	application.NewOrderedItemApplication(or.Persistence, c).ReverseOrder(orderedItems)
+	application.NewOrderedItemApplication(or.Persistence, &ctx).ReverseOrder(orderedItems)
 
 
 	if deleteErr != nil {
@@ -186,6 +198,7 @@ func (or Order) DeleteOrder(c *gin.Context) {
 func (or Order) UpdateOrder(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	orderID, err := strconv.ParseInt(c.Param("order_id"), 10, 64)
+	ctx := c.Request.Context()
 
 	if err != nil {
 		fmt.Println(err)
@@ -194,7 +207,7 @@ func (or Order) UpdateOrder(c *gin.Context) {
 	}
 
 	// Check if the Order exists
-	or.OrderRepo = application.NewOrderApplication(or.Persistence, c)
+	or.OrderRepo = application.NewOrderApplication(or.Persistence, &ctx)
 
 	existingOrder, err := or.OrderRepo.GetOrder(orderID)
 	if err != nil {
@@ -208,7 +221,7 @@ func (or Order) UpdateOrder(c *gin.Context) {
 		return
 	}
 
-	or.OrderRepo = application.NewOrderApplication(or.Persistence, c)
+	or.OrderRepo = application.NewOrderApplication(or.Persistence, &ctx)
 
 	// Update the Order
 	updatedOrder, updateErr := or.OrderRepo.UpdateOrder(existingOrder)

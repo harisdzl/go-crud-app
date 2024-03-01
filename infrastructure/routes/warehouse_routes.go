@@ -9,7 +9,7 @@ import (
 func WarehouseRoutes(router *gin.RouterGroup, p *base.Persistence) {
     warehouses := handlers.NewWarehouse(p)
 
-    warehouses.UpdateWarehouseSearchDB()
+    // warehouses.UpdateWarehouseSearchDB()
     
     router.POST("/warehouses", warehouses.SaveWarehouse)
     // router.POST("/warehouses/multiple", warehouses.SaveMultiplewarehouses)

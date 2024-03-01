@@ -15,10 +15,10 @@ import (
 
 type CustomerRepo struct {
 	p *base.Persistence
-	c context.Context
+	c *context.Context
 }
 
-func NewCustomerRepository(p *base.Persistence, c context.Context) *CustomerRepo {
+func NewCustomerRepository(p *base.Persistence, c *context.Context) *CustomerRepo {
 	return &CustomerRepo{p, c}
 }
 

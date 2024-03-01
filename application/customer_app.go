@@ -11,10 +11,10 @@ import (
 
 type customerApp struct {
 	p *base.Persistence
-	c context.Context
+	c *context.Context
 }
 
-func NewCustomerApplication(p *base.Persistence, c context.Context) customer_repository.CustomerRepository {
+func NewCustomerApplication(p *base.Persistence, c *context.Context) customer_repository.CustomerRepository {
 	return &customerApp{p, c}
 }
 

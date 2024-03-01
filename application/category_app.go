@@ -11,10 +11,10 @@ import (
 
 type CategoryApp struct {
 	p *base.Persistence
-	c context.Context
+	c *context.Context
 }
 
-func NewCategoryApplication(p *base.Persistence, c context.Context) category_repository.CategoryRepository {
+func NewCategoryApplication(p *base.Persistence, c *context.Context) category_repository.CategoryRepository {
 	return &CategoryApp{p, c}
 }
 

@@ -9,26 +9,30 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/order_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/order_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/cache"
+	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
-	"go.opentelemetry.io/otel"
 	"gorm.io/gorm"
 )
 
 type OrderRepo struct {
 	p *base.Persistence
-	c context.Context
+	c *context.Context
 }
 
-func NewOrderRepository(p *base.Persistence, c context.Context) *OrderRepo {
+func NewOrderRepository(p *base.Persistence, c *context.Context) *OrderRepo {
 	return &OrderRepo{p, c}
 }
 
 var _ order_repository.OrderRepository = &OrderRepo{}
 
 func (o *OrderRepo) SaveOrder(tx *gorm.DB, order *order_entity.Order) (*order_entity.Order, error) {
-	tracer := otel.Tracer("implementations.orders.SaveOrder")
-	_, span := tracer.Start(o.c, "implementations.orders.SaveOrderFromRaw")
-	defer span.End()
+	channels := []string{"Zap", "Honeycomb"}
+	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, o.p, o.c, "implementations/SaveOrder")
+	defer loggerRepo.Span.End()
+
+	if loggerErr != nil {
+		return nil, loggerErr
+	}
 
 	if tx == nil {
 		var errTx error
@@ -53,19 +57,19 @@ func (o *OrderRepo) SaveOrder(tx *gorm.DB, order *order_entity.Order) (*order_en
 	}
 	err := tx.Debug().Create(&order).Error
 	if err != nil {
-		span.RecordError(err)
+		// tracer.Span.RecordError(err)
 		fmt.Println("Failed to create order")
 		fmt.Println(err)
 		return nil, err
 	}
-
+	loggerRepo.Info("New order created", map[string]interface{}{"data": order})
+	// tracerRepo.AddEvent(tracer, order)
 	return order, nil
 }
 
 
 func (o *OrderRepo) GetOrder(id int64) (*order_entity.Order, error) {
 	var order *order_entity.Order
-
 	cacheRepo := cache.NewCacheRepository("Redis", o.p)
 	_ = cacheRepo.GetKey(fmt.Sprintf("%v_ORDER", id), &order)
 	if order == nil {

@@ -13,10 +13,10 @@ import (
 
 type productApp struct {
 	p *base.Persistence
-	c context.Context
+	c *context.Context
 }
 
-func NewProductApplication(p *base.Persistence, c context.Context) product_repository.ProductHandlerRepository {
+func NewProductApplication(p *base.Persistence, c *context.Context) product_repository.ProductHandlerRepository {
 	return &productApp{p, c}
 }
 

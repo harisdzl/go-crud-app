@@ -9,7 +9,7 @@ import (
 func ProductRoutes(router *gin.RouterGroup, p *base.Persistence) {
     products := handlers.NewProduct(p)
 
-    products.UpdateProductSearchDB()
+    // products.UpdateProductSearchDB()
     
     router.POST("/products", products.SaveProduct)
     // router.POST("/products/multiple", products.SaveMultipleProducts)

@@ -46,6 +46,7 @@ func NewImage(p *base.Persistence) *Image {
 func (im *Image) SaveImage(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	rawImage := image_entity.Image{}
+	ctx := c.Request.Context()
 
 	rawImage.Caption = c.PostForm("caption")
 	rawImage.ProductID, _ = strconv.ParseInt(c.PostForm("product_id"), 10, 64) 
@@ -64,7 +65,7 @@ func (im *Image) SaveImage(c *gin.Context) {
 		return
 	}
 
-	im.ImageRepo = application.NewImageApplication(im.Persistence, c)
+	im.ImageRepo = application.NewImageApplication(im.Persistence, &ctx)
 	processedImage, processedImageErr := im.ImageRepo.SaveImage(&rawImage)
 
 	if processedImageErr != nil {
@@ -100,6 +101,7 @@ func (im *Image) SaveImage(c *gin.Context) {
 func (im *Image) GetImage(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	imageID, err := strconv.ParseInt((c.Param("image_id")), 10, 64)
+	ctx := c.Request.Context()
 
 	if err != nil {
 		fmt.Println(err)
@@ -107,7 +109,7 @@ func (im *Image) GetImage(c *gin.Context) {
 		return
 	}
 
-	im.ImageRepo = application.NewImageApplication(im.Persistence, c)
+	im.ImageRepo = application.NewImageApplication(im.Persistence, &ctx)
 
 	image, err := im.ImageRepo.GetImage(imageID)
 	if err != nil {
@@ -129,7 +131,9 @@ func (im *Image) GetImage(c *gin.Context) {
 //	@Router			/products/{product_id}/images [get]
 func (im *Image) GetAllImagesOfProduct(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
-	im.ImageRepo = application.NewImageApplication(im.Persistence, c)
+	ctx := c.Request.Context()
+	
+	im.ImageRepo = application.NewImageApplication(im.Persistence, &ctx)
 	productID, err := strconv.ParseInt((c.Param("product_id")), 10, 64)
 
 	allImages, err := im.ImageRepo.GetAllImagesOfProduct(productID)
@@ -155,7 +159,8 @@ func (im *Image) GetAllImagesOfProduct(c *gin.Context) {
 //	@Router			/images/{image_id} [delete]
 func (im *Image) DeleteImage(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
-	im.ImageRepo = application.NewImageApplication(im.Persistence, c)
+	ctx := c.Request.Context()
+	im.ImageRepo = application.NewImageApplication(im.Persistence, &ctx)
 
 	deleteErr := im.ImageRepo.DeleteImage("images", c.Param("image_id"))
 	if deleteErr != nil {

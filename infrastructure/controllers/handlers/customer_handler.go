@@ -43,13 +43,14 @@ func NewCustomer(p *base.Persistence) *Customer {
 func (cr Customer) SaveCustomer(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	customer := customer_entity.Customer{}
+	ctx := c.Request.Context()
 
 	if err := c.ShouldBindJSON(&customer); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, responseContextData.ResponseData(entity.StatusFail, "Invalid JSON", ""))
 		return
 	}
 
-	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence, c)
+	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence, &ctx)
 
 	savedCustomer, saveErr := cr.CustomerRepo.SaveCustomer(&customer)
 
@@ -71,7 +72,9 @@ func (cr Customer) SaveCustomer(c *gin.Context) {
 //	@Router			/customers [get]
 func (cr Customer) GetAllCustomers(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
-	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence, c)
+	ctx := c.Request.Context()
+
+	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence, &ctx)
 
 	allCustomers, err := cr.CustomerRepo.GetAllCustomers()
 	if err != nil {
@@ -98,6 +101,7 @@ func (cr Customer) GetAllCustomers(c *gin.Context) {
 func (cr Customer) GetCustomer(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	customerID, err := strconv.ParseInt(c.Param("customer_id"), 10, 64)
+	ctx := c.Request.Context()
 
 	if err != nil {
 		fmt.Println(err)
@@ -105,7 +109,7 @@ func (cr Customer) GetCustomer(c *gin.Context) {
 		return
 	}
 
-	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence, c)
+	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence, &ctx)
 
 	customer, err := cr.CustomerRepo.GetCustomer(customerID)
 	if err != nil {
@@ -128,13 +132,14 @@ func (cr Customer) GetCustomer(c *gin.Context) {
 func (cr Customer) DeleteCustomer(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	customerID, err := strconv.ParseInt(c.Param("customer_id"), 10, 64)
+	ctx := c.Request.Context()
 
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(http.StatusBadRequest, responseContextData.ResponseData(entity.StatusFail, err.Error(), ""))
 		return
 	}
-	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence, c)
+	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence, &ctx)
 
 	deleteErr := cr.CustomerRepo.DeleteCustomer(customerID)
 	// TODO: when deleting a customer, need to delete all the inventory in it
@@ -162,6 +167,7 @@ func (cr Customer) DeleteCustomer(c *gin.Context) {
 func (cr Customer) UpdateCustomer(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	customerID, err := strconv.ParseInt(c.Param("customer_id"), 10, 64)
+	ctx := c.Request.Context()
 
 	if err != nil {
 		fmt.Println(err)
@@ -170,7 +176,7 @@ func (cr Customer) UpdateCustomer(c *gin.Context) {
 	}
 
 	// Check if the Customer exists
-	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence, c)
+	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence, &ctx)
 
 	existingCustomer, err := cr.CustomerRepo.GetCustomer(customerID)
 	if err != nil {
@@ -184,7 +190,7 @@ func (cr Customer) UpdateCustomer(c *gin.Context) {
 		return
 	}
 
-	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence, c)
+	cr.CustomerRepo = application.NewCustomerApplication(cr.Persistence, &ctx)
 
 	// Update the Customer
 	updatedCustomer, updateErr := cr.CustomerRepo.UpdateCustomer(existingCustomer)

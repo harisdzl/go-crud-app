@@ -11,10 +11,10 @@ import (
 
 type ImageApp struct {
 	p *base.Persistence
-	c context.Context
+	c *context.Context
 }
 
-func NewImageApplication(p *base.Persistence, c context.Context) image_repository.ImageRepository {
+func NewImageApplication(p *base.Persistence, c *context.Context) image_repository.ImageRepository {
 	return &ImageApp{p, c}
 }
 

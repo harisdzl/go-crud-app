@@ -10,53 +10,61 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/ordereditem_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/order_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/inventories"
+	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/ordereditems"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/orders"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/products"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
-	"go.opentelemetry.io/otel"
 )
 
 type OrderApp struct {
 	p *base.Persistence
-	c context.Context
+	c *context.Context
 }
 
-func NewOrderApplication(p *base.Persistence, c context.Context) order_repository.OrderHandlerRepository {
+func NewOrderApplication(p *base.Persistence, c *context.Context) order_repository.OrderHandlerRepository {
 	return &OrderApp{p, c}
 }
 
-func (a *OrderApp) CalculateTotalCost(ctx context.Context, rawOrder order_entity.RawOrder) float64 {
-	tracer := otel.Tracer("application.OrderApp.CalculateTotalCost")
-	_, span := tracer.Start(ctx, "application.OrderApp.CalculateTotalCost")
-	defer span.End()
+func (a *OrderApp) CalculateTotalCost(ctx *context.Context, rawOrder order_entity.RawOrder) float64 {
 	var totalCost float64
+
+	channels := []string{"Zap", "Honeycomb"}
+	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, ctx, "application/CalculateTotalCost")
+	defer loggerRepo.Span.End()
+	if loggerErr != nil {
+		loggerRepo.Error("Failed to initialize logger", map[string]interface{}{})
+	}
+
+	defer loggerRepo.Span.End()
 	for productID, quantity := range rawOrder.Products {
 		id, _ := strconv.ParseInt(productID, 10, 64)
-		product, err := products.NewProductRepository(a.p, a.c).GetProduct(id); if err != nil {
-			span.RecordError(err)
+		product, err := products.NewProductRepository(a.p, ctx).GetProduct(id); if err != nil {
 			log.Println(err)
 		}
 
 		totalCost += (product.Price * float64(quantity))
 	}
 
+	loggerRepo.Info("Total cost calculated", map[string]interface{}{"data": totalCost})
+	
 	return totalCost
 }
 
 
 func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_entity.Order, error) {
 	// Start a new span for the SaveOrderFromRaw function
-	tracer := otel.Tracer("application.OrderApp.SaveOrderFromRaw")
-	newCtx, span := tracer.Start(a.c, "application.OrderApp.SaveOrderFromRaw")
-	defer span.End()
-
 	var errTx error
+
+	channels := []string{"Zap", "Honeycomb"}
+	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, a.c, "application/SaveOrderFromRaw")
+	defer loggerRepo.Span.End()
+	if loggerErr != nil {
+		return nil, loggerErr
+	}
 
 	tx := a.p.DB.Begin()
 	if tx.Error != nil {
-		// Log error within the span
-		span.RecordError(errors.New("failed to start transaction"))
 		return nil, errors.New("failed to start transaction")
 	}
 
@@ -70,7 +78,6 @@ func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_enti
 			errC := tx.Commit().Error
 			if errC != nil {
 				tx.Rollback()
-				span.RecordError(errC)
 			}
 		}
 	}()
@@ -84,30 +91,28 @@ func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_enti
 	}
 
 	// Calculates total costs of all the products
-	totalCost := a.CalculateTotalCost(newCtx, rawOrder)
+	totalCost := a.CalculateTotalCost(loggerRepo.Context, rawOrder)
 	// Set other fields of the order entity
 	order.TotalCost = totalCost
 	totalCheckout := totalCost + order.TotalFees
 	order.TotalCheckout = totalCheckout
 
 	// Save the order
-	repoOrder := orders.NewOrderRepository(a.p, newCtx)
+	repoOrder := orders.NewOrderRepository(a.p, loggerRepo.Context)
 	savedOrder, err := repoOrder.SaveOrder(tx, &order)
 
 	if err != nil {
 		errTx = err
-		span.RecordError(errTx)
 		return nil, errTx
 	}
 
-	repoOrderedItem := ordereditems.NewOrderedItemsRepository(a.p, newCtx)
+	repoOrderedItem := ordereditems.NewOrderedItemsRepository(a.p, loggerRepo.Context)
 	for productID, quantity := range rawOrder.Products {
 		productId, _ := strconv.ParseInt(productID, 10, 64)
 
-		product, productErr := products.NewProductRepository(a.p, a.c).GetProduct(productId)
+		product, productErr := products.NewProductRepository(a.p, loggerRepo.Context).GetProduct(productId)
 		if productErr != nil {
 			errTx = err
-			span.RecordError(productErr)
 			return nil, productErr
 		}
 
@@ -119,12 +124,11 @@ func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_enti
 			TotalPrice: product.Price * float64(quantity),
 		}
 
-		inventoryRepo := inventories.NewInventoryRepository(a.p, newCtx)
+		inventoryRepo := inventories.NewInventoryRepository(a.p, loggerRepo.Context)
 		reduceInventoryErr := inventoryRepo.ReduceInventory(tx, productId, quantity)
 
 		if reduceInventoryErr != nil {
 			errTx = reduceInventoryErr
-			span.RecordError(errTx)
 			return nil, errTx
 		}
 		// Save ordered item
@@ -132,11 +136,12 @@ func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_enti
 
 		if err != nil {
 			errTx = err
-			span.RecordError(errTx)
 			return nil, errTx
 		}
 	}
 
+	loggerRepo.Info("Saved order from raw format", map[string]interface{}{"data": savedOrder})
+	
 	return savedOrder, nil
 }
 

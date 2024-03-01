@@ -11,10 +11,10 @@ import (
 
 type InventoryApp struct {
 	p *base.Persistence
-	c context.Context
+	c *context.Context
 }
 
-func NewInventoryApplication(p *base.Persistence, c context.Context) inventory_repository.InventoryHandlerRepository {
+func NewInventoryApplication(p *base.Persistence, c *context.Context) inventory_repository.InventoryHandlerRepository {
 	return &InventoryApp{p, c}
 }
 

@@ -20,10 +20,10 @@ import (
 // Image Repository struct
 type ImageRepo struct {
 	p *base.Persistence
-	c context.Context
+	c *context.Context
 }
 
-func NewImageRepository(p *base.Persistence, c context.Context) *ImageRepo {
+func NewImageRepository(p *base.Persistence, c *context.Context) *ImageRepo {
 	return &ImageRepo{p, c}
 }
 

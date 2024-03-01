@@ -18,10 +18,10 @@ import (
 // Product Repository struct
 type CategoryRepo struct {
 	p *base.Persistence
-	c context.Context
+	c *context.Context
 }
 
-func NewCategoryRepository(p *base.Persistence, c context.Context) *CategoryRepo {
+func NewCategoryRepository(p *base.Persistence, c *context.Context) *CategoryRepo {
 	return &CategoryRepo{p, c}
 }
 

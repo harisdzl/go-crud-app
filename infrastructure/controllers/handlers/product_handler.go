@@ -51,6 +51,7 @@ func NewProduct(p *base.Persistence) *Product {
 func (pr *Product) SaveProduct(c *gin.Context) {
     responseContextData := entity.ResponseContext{Ctx: c}
     productForInventory := product_entity.ProductForInventory{}
+	ctx := c.Request.Context()
 
     if err := c.ShouldBindJSON(&productForInventory); err != nil {
         c.JSON(http.StatusBadRequest,
@@ -58,7 +59,7 @@ func (pr *Product) SaveProduct(c *gin.Context) {
         return
     }
 
-    pr.productRepo = application.NewProductApplication(pr.Persistence, c)
+    pr.productRepo = application.NewProductApplication(pr.Persistence, &ctx)
 
     // Call the application layer method to save the product
 	savedProduct, savedInventory, saveErr := pr.productRepo.SaveProductAndInventory(productForInventory)
@@ -109,7 +110,9 @@ func (pr *Product) SaveProduct(c *gin.Context) {
 //	@Router			/products [get]
 func (pr *Product) GetAllProducts(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
-	pr.productRepo = application.NewProductApplication(pr.Persistence, c)
+	ctx := c.Request.Context()
+
+	pr.productRepo = application.NewProductApplication(pr.Persistence, &ctx)
 
 	allProduct, err := pr.productRepo.GetAllProducts()
 	if err != nil {
@@ -135,6 +138,7 @@ func (pr *Product) GetAllProducts(c *gin.Context) {
 //	@Router			/products/{product_id} [get]
 func (pr *Product) GetProduct(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
+	ctx := c.Request.Context()
 
 	productId, err := strconv.ParseInt((c.Param("product_id")), 10, 64)
 
@@ -144,7 +148,7 @@ func (pr *Product) GetProduct(c *gin.Context) {
 		return
 	}
 
-	pr.productRepo = application.NewProductApplication(pr.Persistence, c)
+	pr.productRepo = application.NewProductApplication(pr.Persistence, &ctx)
 
 	product, getErr := pr.productRepo.GetProduct(productId)
 	if getErr != nil {
@@ -168,13 +172,14 @@ func (pr *Product) GetProduct(c *gin.Context) {
 func (pr *Product) DeleteProduct(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	productId, err := strconv.ParseInt((c.Param("product_id")), 10, 64)
+	ctx := c.Request.Context()
 
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(http.StatusBadRequest, responseContextData.ResponseData(entity.StatusFail, err.Error(), ""))
 		return
 	}
-	pr.productRepo = application.NewProductApplication(pr.Persistence, c)
+	pr.productRepo = application.NewProductApplication(pr.Persistence, &ctx)
 
 	deleteErr := pr.productRepo.DeleteProduct(productId)
 	if deleteErr != nil {
@@ -200,6 +205,7 @@ func (pr *Product) DeleteProduct(c *gin.Context) {
 func (pr *Product) UpdateProduct(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	productId, err := strconv.ParseInt(c.Param("product_id"), 10, 64)
+	ctx := c.Request.Context()
 
 	if err != nil {
 		fmt.Println(err)
@@ -208,7 +214,7 @@ func (pr *Product) UpdateProduct(c *gin.Context) {
 	}
 
 	// Check if the product exists
-	pr.productRepo = application.NewProductApplication(pr.Persistence, c)
+	pr.productRepo = application.NewProductApplication(pr.Persistence, &ctx)
 
 	existingProduct, err := pr.productRepo.GetProduct(productId)
 	if err != nil {
@@ -222,7 +228,7 @@ func (pr *Product) UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	pr.productRepo = application.NewProductApplication(pr.Persistence, c)
+	pr.productRepo = application.NewProductApplication(pr.Persistence, &ctx)
 
 	// Update the product
 	updatedProduct, updateErr := pr.productRepo.UpdateProduct(existingProduct)
@@ -247,12 +253,13 @@ func (pr *Product) UpdateProduct(c *gin.Context) {
 func (pr *Product) SearchProduct(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	var productsName = c.Query("name")
+	ctx := c.Request.Context()
 
 	if productsName == "" {
 		c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "", gin.H{}))
 		return
 	}
-	pr.productRepo = application.NewProductApplication(pr.Persistence, c)
+	pr.productRepo = application.NewProductApplication(pr.Persistence, &ctx)
 
 	products, searchErr := pr.productRepo.SearchProduct(productsName)
 	if searchErr != nil {
@@ -268,8 +275,10 @@ func (pr *Product) SearchProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "", results))
 }
 
-func (pr *Product) UpdateProductSearchDB() {
-	pr.productRepo = application.NewProductApplication(pr.Persistence, &gin.Context{})
+func (pr *Product) UpdateProductSearchDB(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	pr.productRepo = application.NewProductApplication(pr.Persistence, &ctx)
 	updateErr := pr.productRepo.UpdateProductsInSearchDB()
 
 	if updateErr != nil {
