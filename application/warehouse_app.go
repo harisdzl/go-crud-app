@@ -1,8 +1,7 @@
 package application
 
 import (
-	"context"
-
+	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/warehouse_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/warehouse_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/inventories"
@@ -12,10 +11,10 @@ import (
 
 type warehouseApp struct {
 	p *base.Persistence
-	c *context.Context
+	c *gin.Context
 }
 
-func NewWarehouseApplication(p *base.Persistence, c *context.Context) warehouse_repository.WarehouseRepository {
+func NewWarehouseApplication(p *base.Persistence, c *gin.Context) warehouse_repository.WarehouseRepository {
 	return &warehouseApp{p, c}
 }
 

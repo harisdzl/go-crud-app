@@ -29,9 +29,8 @@ func NewOrder(p *base.Persistence) *Order {
 func (or Order) SaveOrder(c *gin.Context) {
 	// Start a new span for the handler function
 	channels := []string{"Zap", "Honeycomb"}
-	ctx := c.Request.Context()
-	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, or.Persistence, &ctx, "handlers/SaveOrder")
-	defer loggerRepo.End()
+	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, or.Persistence, c, "handlers/SaveOrder")
+	defer loggerRepo.Span.End()
 	if loggerErr != nil {
 		loggerRepo.Warn("Error in initializing logger", map[string]interface{}{})
 	}
@@ -56,7 +55,7 @@ func (or Order) SaveOrder(c *gin.Context) {
 	}
 
 
-	or.OrderRepo = application.NewOrderApplication(or.Persistence, loggerRepo.Context)
+	or.OrderRepo = application.NewOrderApplication(or.Persistence, c)
 	savedOrder, saveErr := or.OrderRepo.SaveOrderFromRaw(rawOrder)
 	if saveErr != nil {
 		// Log error within the span
@@ -84,9 +83,9 @@ func (or Order) SaveOrder(c *gin.Context) {
 //	@Router			/orders [get]
 func (or Order) GetAllOrders(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
-	ctx := c.Request.Context()
+	
 
-	or.OrderRepo = application.NewOrderApplication(or.Persistence, &ctx)
+	or.OrderRepo = application.NewOrderApplication(or.Persistence, c)
 
 	allOrders, err := or.OrderRepo.GetAllOrders()
 	if err != nil {
@@ -114,7 +113,7 @@ func (or Order) GetAllOrders(c *gin.Context) {
 func (or Order) GetOrder(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	orderID, err := strconv.ParseInt(c.Param("order_id"), 10, 64)
-	ctx := c.Request.Context()
+	
 
 	if err != nil {
 		fmt.Println(err)
@@ -122,7 +121,7 @@ func (or Order) GetOrder(c *gin.Context) {
 		return
 	}
 
-	or.OrderRepo = application.NewOrderApplication(or.Persistence, &ctx)
+	or.OrderRepo = application.NewOrderApplication(or.Persistence, c)
 
 	order, err := or.OrderRepo.GetOrder(orderID)
 	if err != nil {
@@ -146,14 +145,14 @@ func (or Order) GetOrder(c *gin.Context) {
 func (or Order) DeleteOrder(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	orderID, err := strconv.ParseInt(c.Param("order_id"), 10, 64)
-	ctx := c.Request.Context()
+	
 
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(http.StatusBadRequest, responseContextData.ResponseData(entity.StatusFail, err.Error(), ""))
 		return
 	}
-	or.OrderRepo = application.NewOrderApplication(or.Persistence, &ctx)
+	or.OrderRepo = application.NewOrderApplication(or.Persistence, c)
 
 	if err != nil {
 		fmt.Println(err)
@@ -163,14 +162,14 @@ func (or Order) DeleteOrder(c *gin.Context) {
 
 	deleteErr := or.OrderRepo.DeleteOrder(orderID)
 	// TODO: when deleting a order, need to delete all the inventory in it
-	orderedItems, orderedItemsErr := application.NewOrderedItemApplication(or.Persistence, &ctx).GetAllOrderedItemsForOrder(orderID)
+	orderedItems, orderedItemsErr := application.NewOrderedItemApplication(or.Persistence, c).GetAllOrderedItemsForOrder(orderID)
 	if orderedItemsErr != nil {	
 		fmt.Println(err)
 		c.JSON(http.StatusBadRequest, responseContextData.ResponseData(entity.StatusFail, err.Error(), ""))
 		return
 	}
 
-	application.NewOrderedItemApplication(or.Persistence, &ctx).ReverseOrder(orderedItems)
+	application.NewOrderedItemApplication(or.Persistence, c).ReverseOrder(orderedItems)
 
 
 	if deleteErr != nil {
@@ -198,7 +197,7 @@ func (or Order) DeleteOrder(c *gin.Context) {
 func (or Order) UpdateOrder(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
 	orderID, err := strconv.ParseInt(c.Param("order_id"), 10, 64)
-	ctx := c.Request.Context()
+	
 
 	if err != nil {
 		fmt.Println(err)
@@ -207,7 +206,7 @@ func (or Order) UpdateOrder(c *gin.Context) {
 	}
 
 	// Check if the Order exists
-	or.OrderRepo = application.NewOrderApplication(or.Persistence, &ctx)
+	or.OrderRepo = application.NewOrderApplication(or.Persistence, c)
 
 	existingOrder, err := or.OrderRepo.GetOrder(orderID)
 	if err != nil {
@@ -221,7 +220,7 @@ func (or Order) UpdateOrder(c *gin.Context) {
 		return
 	}
 
-	or.OrderRepo = application.NewOrderApplication(or.Persistence, &ctx)
+	or.OrderRepo = application.NewOrderApplication(or.Persistence, c)
 
 	// Update the Order
 	updatedOrder, updateErr := or.OrderRepo.UpdateOrder(existingOrder)

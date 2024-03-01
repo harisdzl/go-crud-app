@@ -1,11 +1,11 @@
 package customers
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/customer_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/customer_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/cache"
@@ -15,10 +15,10 @@ import (
 
 type CustomerRepo struct {
 	p *base.Persistence
-	c *context.Context
+	c *gin.Context
 }
 
-func NewCustomerRepository(p *base.Persistence, c *context.Context) *CustomerRepo {
+func NewCustomerRepository(p *base.Persistence, c *gin.Context) *CustomerRepo {
 	return &CustomerRepo{p, c}
 }
 

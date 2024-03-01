@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 
+	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -14,20 +15,29 @@ import (
 // HoneycombRepo is the Honeycomb logger implementation
 type HoneycombRepo struct {
 	p *base.Persistence
-	Context *context.Context
+	c *gin.Context
 	Span trace.Span
 }
 
-// NewHoneycombRepository creates a new Honeycomb logger repository
-func NewHoneycombRepository(p *base.Persistence, c *context.Context, info string) *HoneycombRepo {
-	// Implement info logging with Honeycomb
-	tracer := p.Logger.Honeycomb
-	
-	ctx, span := tracer.Start(*c, info)
+func NewHoneycombRepository(p *base.Persistence, c *gin.Context, info string) *HoneycombRepo {
+    // Retrieve otel_context from Gin context if it exists
+    ctxValue, exists := c.Get("otel_context")
+    var ctx context.Context
+    if exists {
+        ctx, _ = ctxValue.(context.Context)
+    } else {
+        ctx = c.Request.Context()
+    }
 
-	return &HoneycombRepo{p, &ctx, span}
+    // Implement info logging with Honeycomb using the retrieved context
+    tracer := p.Logger.Honeycomb
+    newCtx, span := tracer.Start(ctx, info)
+
+    // Set the otel_context in the Gin context
+    c.Set("otel_context", newCtx)
+
+    return &HoneycombRepo{p, c, span}
 }
-
 // Debug logs a debug message
 func (h *HoneycombRepo) Debug(msg string, fields map[string]interface{}) {
 	jsonData, jsonDataErr := json.Marshal(fields)

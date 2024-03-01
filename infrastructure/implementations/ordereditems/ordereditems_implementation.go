@@ -1,10 +1,10 @@
 package ordereditems
 
 import (
-	"context"
 	"errors"
 	"fmt"
 
+	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/ordereditem_entity"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
@@ -13,10 +13,10 @@ import (
 
 type OrderedItemsRepo struct {
 	p *base.Persistence
-	c *context.Context
+	c *gin.Context
 }
 
-func NewOrderedItemsRepository(p *base.Persistence, c *context.Context) *OrderedItemsRepo {
+func NewOrderedItemsRepository(p *base.Persistence, c *gin.Context) *OrderedItemsRepo {
 	return &OrderedItemsRepo{p, c}
 }
 
@@ -24,7 +24,7 @@ func NewOrderedItemsRepository(p *base.Persistence, c *context.Context) *Ordered
 func (o *OrderedItemsRepo) SaveOrderedItem(tx *gorm.DB, orderedItem *ordereditem_entity.OrderedItem) (*ordereditem_entity.OrderedItem, error) {
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, o.p, o.c, "implementations/SaveOrderedItem")
-	defer loggerRepo.End()
+	defer loggerRepo.Span.End()
 	if loggerErr != nil {
 		return nil, loggerErr
 	}

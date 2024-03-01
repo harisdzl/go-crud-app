@@ -1,12 +1,12 @@
 package products
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/product_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/product_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/cache"
@@ -21,10 +21,10 @@ import (
 // Product Repository struct
 type ProductRepo struct {
 	p *base.Persistence
-	c *context.Context
+	c *gin.Context
 }
 
-func NewProductRepository(p *base.Persistence, c *context.Context) *ProductRepo {
+func NewProductRepository(p *base.Persistence, c *gin.Context) *ProductRepo {
 	return &ProductRepo{p, c}
 }
 
@@ -95,39 +95,39 @@ func (r *ProductRepo) SaveProduct(product *product_entity.Product) (*product_ent
 // }
 
 func (r *ProductRepo) GetProduct(id int64) (*product_entity.Product, error) {
-	channels := []string{"Zap", "Honeycomb"}
-	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, r.p, r.c, "implementations/GetProduct")
+    channels := []string{"Zap", "Honeycomb"}
+    loggerRepo, loggerErr := logger.NewLoggerRepository(channels, r.p, r.c, "implementations/GetProduct")
 
-	if loggerErr != nil {
-		return nil, loggerErr
-	}
-	defer loggerRepo.End()
-	
-	var product *product_entity.Product
+    if loggerErr != nil {
+        return nil, loggerErr
+    }
+    defer loggerRepo.Span.End()
+    
+    var product *product_entity.Product
 
-	
-	cacheRepo := cache.NewCacheRepository("Redis", r.p)
-	_ = cacheRepo.GetKey(fmt.Sprintf("%v_PRODUCTS", id), &product)
-	if product == nil {
-		err := r.p.DB.Debug().Where("id = ?", id).Take(&product).Error
-		if err != nil {
-			// tracer.Span.RecordError(err)
-			fmt.Println("Failed to get product")
-			return nil, err
-		}
-		if product != nil && product.ID > 0 {
-			_ = cacheRepo.SetKey(fmt.Sprintf("%v_PRODUCTS", id), product, time.Minute * 15)
-		}
-	}
+    cacheRepo := cache.NewCacheRepository("Redis", r.p)
+    _ = cacheRepo.GetKey(fmt.Sprintf("%v_PRODUCTS", id), &product)
+    if product == nil {
+        err := r.p.DB.Debug().Preload("Category").Preload("Images").Where("id = ?", id).Take(&product).Error
+        if err != nil {
+            fmt.Println("Failed to get product")
+            return nil, err
+        }
+        if product != nil && product.ID > 0 {
+            _ = cacheRepo.SetKey(fmt.Sprintf("%v_PRODUCTS", id), product, time.Minute * 15)
+        }
+    }
 
-	loggerRepo.Info("Product retrieved", map[string]interface{}{"data": product})
+    loggerRepo.Info("Product retrieved", map[string]interface{}{"data": product})
 
-	return product, nil
+    return product, nil
 }
+
 
 func (r *ProductRepo) GetAllProducts() ([]product_entity.Product, error) {
 	var products []product_entity.Product
-	err := r.p.DB.Debug().Find(&products).Error
+	err := r.p.DB.Debug().Preload("Category").Preload("Images").Find(&products).Error
+
 	if err != nil {
 		return nil, err
 	}

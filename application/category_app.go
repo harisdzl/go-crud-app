@@ -1,8 +1,7 @@
 package application
 
 import (
-	"context"
-
+	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/category_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/category_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/categories"
@@ -11,10 +10,10 @@ import (
 
 type CategoryApp struct {
 	p *base.Persistence
-	c *context.Context
+	c *gin.Context
 }
 
-func NewCategoryApplication(p *base.Persistence, c *context.Context) category_repository.CategoryRepository {
+func NewCategoryApplication(p *base.Persistence, c *gin.Context) category_repository.CategoryRepository {
 	return &CategoryApp{p, c}
 }
 

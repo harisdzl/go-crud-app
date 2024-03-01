@@ -1,8 +1,7 @@
 package zap
 
 import (
-	"context"
-
+	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 	"go.uber.org/zap"
 )
@@ -10,11 +9,11 @@ import (
 // ZapRepo is the Zap logger implementation
 type ZapRepo struct {
 	p *base.Persistence
-	c *context.Context
+	c *gin.Context
 }
 
 // NewZapRepository creates a new Zap logger repository
-func NewZapRepository(p *base.Persistence, c *context.Context) *ZapRepo {
+func NewZapRepository(p *base.Persistence, c *gin.Context) *ZapRepo {
 	return &ZapRepo{p, c}
 }
 

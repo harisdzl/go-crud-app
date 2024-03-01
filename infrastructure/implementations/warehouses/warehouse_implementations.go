@@ -1,11 +1,11 @@
 package warehouses
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/warehouse_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/warehouse_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/cache"
@@ -19,10 +19,10 @@ import (
 // warehouse Repository struct
 type WarehouseRepo struct {
 	p *base.Persistence
-	c *context.Context
+	c *gin.Context
 }
 
-func NewWareHouseRepository(p *base.Persistence, c *context.Context) *WarehouseRepo {
+func NewWareHouseRepository(p *base.Persistence, c *gin.Context) *WarehouseRepo {
 	return &WarehouseRepo{p, c}
 }
 

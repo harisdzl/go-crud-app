@@ -1,11 +1,11 @@
 package application
 
 import (
-	"context"
 	"errors"
 	"log"
 	"strconv"
 
+	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/order_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/ordereditem_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/order_repository"
@@ -19,26 +19,26 @@ import (
 
 type OrderApp struct {
 	p *base.Persistence
-	c *context.Context
+	c *gin.Context
 }
 
-func NewOrderApplication(p *base.Persistence, c *context.Context) order_repository.OrderHandlerRepository {
+func NewOrderApplication(p *base.Persistence, c *gin.Context) order_repository.OrderHandlerRepository {
 	return &OrderApp{p, c}
 }
 
-func (a *OrderApp) CalculateTotalCost(ctx *context.Context, rawOrder order_entity.RawOrder) float64 {
+func (a *OrderApp) CalculateTotalCost(ctx *gin.Context, rawOrder order_entity.RawOrder) float64 {
 	var totalCost float64
 
 	channels := []string{"Zap", "Honeycomb"}
-	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, ctx, "application/CalculateTotalCost")
+	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, a.c, "application/CalculateTotalCost")
 	if loggerErr != nil {
 		loggerRepo.Error("Failed to initialize logger", map[string]interface{}{})
 	}
 
-	defer loggerRepo.End()
+	defer loggerRepo.Span.End()
 	for productID, quantity := range rawOrder.Products {
 		id, _ := strconv.ParseInt(productID, 10, 64)
-		product, err := products.NewProductRepository(a.p, ctx).GetProduct(id); if err != nil {
+		product, err := products.NewProductRepository(a.p, a.c).GetProduct(id); if err != nil {
 			log.Println(err)
 		}
 
@@ -54,10 +54,10 @@ func (a *OrderApp) CalculateTotalCost(ctx *context.Context, rawOrder order_entit
 func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_entity.Order, error) {
 	// Start a new span for the SaveOrderFromRaw function
 	var errTx error
-
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, a.c, "application/SaveOrderFromRaw")
-	defer loggerRepo.End()
+
+	defer loggerRepo.Span.End()
 	if loggerErr != nil {
 		return nil, loggerErr
 	}
@@ -90,14 +90,14 @@ func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_enti
 	}
 
 	// Calculates total costs of all the products
-	totalCost := a.CalculateTotalCost(loggerRepo.Context, rawOrder)
+	totalCost := a.CalculateTotalCost(a.c, rawOrder)
 	// Set other fields of the order entity
 	order.TotalCost = totalCost
 	totalCheckout := totalCost + order.TotalFees
 	order.TotalCheckout = totalCheckout
 
 	// Save the order
-	repoOrder := orders.NewOrderRepository(a.p, loggerRepo.Context)
+	repoOrder := orders.NewOrderRepository(a.p, a.c)
 	savedOrder, err := repoOrder.SaveOrder(tx, &order)
 
 	if err != nil {
@@ -105,11 +105,11 @@ func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_enti
 		return nil, errTx
 	}
 
-	repoOrderedItem := ordereditems.NewOrderedItemsRepository(a.p, loggerRepo.Context)
+	repoOrderedItem := ordereditems.NewOrderedItemsRepository(a.p, a.c)
 	for productID, quantity := range rawOrder.Products {
 		productId, _ := strconv.ParseInt(productID, 10, 64)
 
-		product, productErr := products.NewProductRepository(a.p, loggerRepo.Context).GetProduct(productId)
+		product, productErr := products.NewProductRepository(a.p, a.c).GetProduct(productId)
 		if productErr != nil {
 			errTx = err
 			return nil, productErr
@@ -123,7 +123,7 @@ func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_enti
 			TotalPrice: product.Price * float64(quantity),
 		}
 
-		inventoryRepo := inventories.NewInventoryRepository(a.p, loggerRepo.Context)
+		inventoryRepo := inventories.NewInventoryRepository(a.p, a.c)
 		reduceInventoryErr := inventoryRepo.ReduceInventory(tx, productId, quantity)
 
 		if reduceInventoryErr != nil {

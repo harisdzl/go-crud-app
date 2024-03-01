@@ -1,11 +1,11 @@
 package inventories
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/inventory_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/inventory_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/cache"
@@ -19,10 +19,10 @@ import (
 // Inventory Repository struct
 type InventoryRepo struct {
 	p *base.Persistence
-	c *context.Context
+	c *gin.Context
 }
 
-func NewInventoryRepository(p *base.Persistence, c *context.Context) *InventoryRepo {
+func NewInventoryRepository(p *base.Persistence, c *gin.Context) *InventoryRepo {
 	return &InventoryRepo{p, c}
 }
 
@@ -127,7 +127,7 @@ func (r *InventoryRepo) ReduceInventory(tx *gorm.DB, id int64, quantityOrdered i
 		return loggerErr
 	}
 
-	defer loggerRepo.End()
+	defer loggerRepo.Span.End()
 
 	inventory, invErr := r.GetInventory(id)
 	if invErr != nil {

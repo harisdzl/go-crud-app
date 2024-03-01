@@ -1,8 +1,7 @@
 package application
 
 import (
-	"context"
-
+	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/customer_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/customer_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/customers"
@@ -11,10 +10,10 @@ import (
 
 type customerApp struct {
 	p *base.Persistence
-	c *context.Context
+	c *gin.Context
 }
 
-func NewCustomerApplication(p *base.Persistence, c *context.Context) customer_repository.CustomerRepository {
+func NewCustomerApplication(p *base.Persistence, c *gin.Context) customer_repository.CustomerRepository {
 	return &customerApp{p, c}
 }
 

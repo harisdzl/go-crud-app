@@ -1,13 +1,13 @@
 package images
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log"
 	"strconv"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/image_entity"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/cache"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/storage"
@@ -20,10 +20,10 @@ import (
 // Image Repository struct
 type ImageRepo struct {
 	p *base.Persistence
-	c *context.Context
+	c *gin.Context
 }
 
-func NewImageRepository(p *base.Persistence, c *context.Context) *ImageRepo {
+func NewImageRepository(p *base.Persistence, c *gin.Context) *ImageRepo {
 	return &ImageRepo{p, c}
 }
 

@@ -1,8 +1,7 @@
 package application
 
 import (
-	"context"
-
+	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/inventory_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/inventory_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/inventories"
@@ -11,10 +10,10 @@ import (
 
 type InventoryApp struct {
 	p *base.Persistence
-	c *context.Context
+	c *gin.Context
 }
 
-func NewInventoryApplication(p *base.Persistence, c *context.Context) inventory_repository.InventoryHandlerRepository {
+func NewInventoryApplication(p *base.Persistence, c *gin.Context) inventory_repository.InventoryHandlerRepository {
 	return &InventoryApp{p, c}
 }
 

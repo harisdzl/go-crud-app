@@ -47,8 +47,8 @@ func (au *Auth) Login(c *gin.Context) {
 			responseContextData.ResponseData(entity.StatusFail, err.Error(), ""))
 		return
 	}
-	ctx := c.Request.Context()
-	au.AuthRepo = application.NewAuthApplication(au.Persistence, &ctx)
+	
+	au.AuthRepo = application.NewAuthApplication(au.Persistence, c)
 
 	token, customer, tokenErr := au.AuthRepo.AuthenticateUser(loginDetails.Username, loginDetails.Password)
 
@@ -93,10 +93,10 @@ func (au *Auth) Logout(c *gin.Context) {
 		return
 	}
 
-	ctx := c.Request.Context()
+	
 
 	// Add the access token to the blacklist in Redis
-	au.AuthRepo = application.NewAuthApplication(au.Persistence, &ctx)
+	au.AuthRepo = application.NewAuthApplication(au.Persistence, c)
 	if err := au.AuthRepo.BlacklistToken(accessToken["access_token"]); err != nil {
 		c.JSON(http.StatusInternalServerError,
 			responseContextData.ResponseData(entity.StatusFail, "Failed to logout", nil))

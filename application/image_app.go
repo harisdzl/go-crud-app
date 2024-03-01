@@ -1,8 +1,7 @@
 package application
 
 import (
-	"context"
-
+	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/image_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/image_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/images"
@@ -11,10 +10,10 @@ import (
 
 type ImageApp struct {
 	p *base.Persistence
-	c *context.Context
+	c *gin.Context
 }
 
-func NewImageApplication(p *base.Persistence, c *context.Context) image_repository.ImageRepository {
+func NewImageApplication(p *base.Persistence, c *gin.Context) image_repository.ImageRepository {
 	return &ImageApp{p, c}
 }
 

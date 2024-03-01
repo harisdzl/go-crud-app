@@ -1,10 +1,10 @@
 package application
 
 import (
-	"context"
 	"errors"
 	"os"
 
+	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/customer_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/auth_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/auth"
@@ -14,10 +14,10 @@ import (
 
 type AuthApp struct {
 	p *base.Persistence
-	c *context.Context
+	c *gin.Context
 }
 
-func NewAuthApplication(p *base.Persistence, c *context.Context) auth_repository.AuthHandlerRepository {
+func NewAuthApplication(p *base.Persistence, c *gin.Context) auth_repository.AuthHandlerRepository {
 	return &AuthApp{p, c}
 }
 

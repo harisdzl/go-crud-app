@@ -1,9 +1,9 @@
 package application
 
 import (
-	"context"
 	"fmt"
 
+	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/ordereditem_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/ordereditem_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/inventories"
@@ -13,10 +13,10 @@ import (
 
 type OrderedItemApp struct {
 	p *base.Persistence
-	c *context.Context
+	c *gin.Context
 }
 
-func NewOrderedItemApplication(p *base.Persistence, c *context.Context) ordereditem_repository.OrderedItemRepository {
+func NewOrderedItemApplication(p *base.Persistence, c *gin.Context) ordereditem_repository.OrderedItemRepository {
 	return &OrderedItemApp{p, c}
 }
 

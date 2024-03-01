@@ -2,7 +2,9 @@ package logger
 
 import (
 	"context"
+	"log"
 
+	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/logger_repository"
 	honeycomb "github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger/honeycomb_implementation"
 	zap "github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger/zap_implementation"
@@ -13,7 +15,9 @@ import (
 // LoggerRepo is a logger repository that can use multiple channels
 type LoggerRepo struct {
 	loggers []logger_repository.LoggerRepository
-	Context *context.Context
+	c *gin.Context
+	p *base.Persistence
+	Span trace.Span
 }
 
 const (
@@ -22,7 +26,7 @@ const (
 )
 
 // NewLoggerRepository creates a new logger repository based on the specified channels
-func NewLoggerRepository(channels []string, p *base.Persistence, c *context.Context, info string) (LoggerRepo, error) {
+func NewLoggerRepository(channels []string, p *base.Persistence, c *gin.Context, info string) (LoggerRepo, error) {
 	var loggers []logger_repository.LoggerRepository
 	var honeycombRepo *honeycomb.HoneycombRepo
 	for _, channel := range channels {
@@ -42,7 +46,7 @@ func NewLoggerRepository(channels []string, p *base.Persistence, c *context.Cont
 	// 	return nil, errors.New("no supported logger type found in the provided channels")
 	// }
 
-	return LoggerRepo{loggers: loggers, Context: honeycombRepo.Context}, nil
+	return LoggerRepo{loggers: loggers, c: c, Span: honeycombRepo.Span}, nil
 }
 
 // Debug logs a debug message
@@ -83,6 +87,14 @@ func (l *LoggerRepo) Fatal(msg string, fields map[string]interface{}) {
 // End function
 
 func (l *LoggerRepo) End() {
-	span := trace.SpanFromContext(*l.Context)
+	ctxValue, exists := l.c.Get("otel_context")
+    var ctx context.Context
+    if exists {
+        ctx, _ = ctxValue.(context.Context)
+    } else {
+        ctx = l.c.Request.Context()
+    }
+	log.Println(ctx)
+	span := trace.SpanFromContext(ctx)
 	span.End()
 }

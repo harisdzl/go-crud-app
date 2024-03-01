@@ -1,10 +1,10 @@
 package auth
 
 import (
-	"context"
 	"fmt"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/customer_entity"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/cache"
@@ -15,11 +15,11 @@ import (
 
 type AuthRepo struct {
 	p *base.Persistence
-	c *context.Context
+	c *gin.Context
 }
 
 
-func NewAuthRepository(p *base.Persistence, c *context.Context) *AuthRepo {
+func NewAuthRepository(p *base.Persistence, c *gin.Context) *AuthRepo {
 	return &AuthRepo{p, c}
 }
 

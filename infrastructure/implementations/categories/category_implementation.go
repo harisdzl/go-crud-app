@@ -1,11 +1,11 @@
 package categories
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/category_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/category_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/cache"
@@ -18,10 +18,10 @@ import (
 // Product Repository struct
 type CategoryRepo struct {
 	p *base.Persistence
-	c *context.Context
+	c *gin.Context
 }
 
-func NewCategoryRepository(p *base.Persistence, c *context.Context) *CategoryRepo {
+func NewCategoryRepository(p *base.Persistence, c *gin.Context) *CategoryRepo {
 	return &CategoryRepo{p, c}
 }
 

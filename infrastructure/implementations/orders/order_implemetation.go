@@ -1,11 +1,11 @@
 package orders
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/order_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/order_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/cache"
@@ -16,10 +16,10 @@ import (
 
 type OrderRepo struct {
 	p *base.Persistence
-	c *context.Context
+	c *gin.Context
 }
 
-func NewOrderRepository(p *base.Persistence, c *context.Context) *OrderRepo {
+func NewOrderRepository(p *base.Persistence, c *gin.Context) *OrderRepo {
 	return &OrderRepo{p, c}
 }
 
@@ -28,7 +28,7 @@ var _ order_repository.OrderRepository = &OrderRepo{}
 func (o *OrderRepo) SaveOrder(tx *gorm.DB, order *order_entity.Order) (*order_entity.Order, error) {
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, o.p, o.c, "implementations/SaveOrder")
-	defer loggerRepo.End()
+	defer loggerRepo.Span.End()
 
 	if loggerErr != nil {
 		return nil, loggerErr
