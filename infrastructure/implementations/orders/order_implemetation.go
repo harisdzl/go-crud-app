@@ -28,7 +28,7 @@ var _ order_repository.OrderRepository = &OrderRepo{}
 func (o *OrderRepo) SaveOrder(tx *gorm.DB, order *order_entity.Order) (*order_entity.Order, error) {
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, o.p, o.c, "implementations/SaveOrder")
-	defer loggerRepo.Span.End()
+	defer loggerRepo.End()
 
 	if loggerErr != nil {
 		return nil, loggerErr

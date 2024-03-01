@@ -31,12 +31,11 @@ func (a *OrderApp) CalculateTotalCost(ctx *context.Context, rawOrder order_entit
 
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, ctx, "application/CalculateTotalCost")
-	defer loggerRepo.Span.End()
 	if loggerErr != nil {
 		loggerRepo.Error("Failed to initialize logger", map[string]interface{}{})
 	}
 
-	defer loggerRepo.Span.End()
+	defer loggerRepo.End()
 	for productID, quantity := range rawOrder.Products {
 		id, _ := strconv.ParseInt(productID, 10, 64)
 		product, err := products.NewProductRepository(a.p, ctx).GetProduct(id); if err != nil {
@@ -58,7 +57,7 @@ func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_enti
 
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, a.c, "application/SaveOrderFromRaw")
-	defer loggerRepo.Span.End()
+	defer loggerRepo.End()
 	if loggerErr != nil {
 		return nil, loggerErr
 	}

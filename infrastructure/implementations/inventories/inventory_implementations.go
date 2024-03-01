@@ -127,7 +127,7 @@ func (r *InventoryRepo) ReduceInventory(tx *gorm.DB, id int64, quantityOrdered i
 		return loggerErr
 	}
 
-	defer loggerRepo.Span.End()
+	defer loggerRepo.End()
 
 	inventory, invErr := r.GetInventory(id)
 	if invErr != nil {

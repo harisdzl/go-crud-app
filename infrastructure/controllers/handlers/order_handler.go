@@ -31,7 +31,7 @@ func (or Order) SaveOrder(c *gin.Context) {
 	channels := []string{"Zap", "Honeycomb"}
 	ctx := c.Request.Context()
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, or.Persistence, &ctx, "handlers/SaveOrder")
-	defer loggerRepo.Span.End()
+	defer loggerRepo.End()
 	if loggerErr != nil {
 		loggerRepo.Warn("Error in initializing logger", map[string]interface{}{})
 	}

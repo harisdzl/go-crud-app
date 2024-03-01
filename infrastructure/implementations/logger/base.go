@@ -14,7 +14,6 @@ import (
 type LoggerRepo struct {
 	loggers []logger_repository.LoggerRepository
 	Context *context.Context
-	Span trace.Span
 }
 
 const (
@@ -43,7 +42,7 @@ func NewLoggerRepository(channels []string, p *base.Persistence, c *context.Cont
 	// 	return nil, errors.New("no supported logger type found in the provided channels")
 	// }
 
-	return LoggerRepo{loggers: loggers, Context: honeycombRepo.Context, Span: honeycombRepo.Span}, nil
+	return LoggerRepo{loggers: loggers, Context: honeycombRepo.Context}, nil
 }
 
 // Debug logs a debug message
@@ -79,4 +78,11 @@ func (l *LoggerRepo) Fatal(msg string, fields map[string]interface{}) {
 	for _, logger := range l.loggers {
 		logger.Fatal(msg, fields)
 	}
+}
+
+// End function
+
+func (l *LoggerRepo) End() {
+	span := trace.SpanFromContext(*l.Context)
+	span.End()
 }
