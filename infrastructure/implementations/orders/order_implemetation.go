@@ -73,7 +73,7 @@ func (o *OrderRepo) GetOrder(id int64) (*order_entity.Order, error) {
 	cacheRepo := cache.NewCacheRepository("Redis", o.p)
 	_ = cacheRepo.GetKey(fmt.Sprintf("%v_ORDER", id), &order)
 	if order == nil {
-		err := o.p.DB.Debug().Where("id = ?", id).Take(&order).Error
+		err := o.p.DB.Debug().Preload("OrderedItems").Where("id = ?", id).Take(&order).Error
 		if err != nil {
 			fmt.Println("Failed to get order")
 		}
@@ -88,7 +88,7 @@ func (o *OrderRepo) GetOrder(id int64) (*order_entity.Order, error) {
 
 func (o *OrderRepo) GetAllOrders() ([]order_entity.Order, error) {
 	var orders []order_entity.Order
-	err := o.p.DB.Debug().Find(&orders).Error
+	err := o.p.DB.Debug().Preload("OrderedItems").Find(&orders).Error
 	if err != nil {
 		return nil, err
 	}

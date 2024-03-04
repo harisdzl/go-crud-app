@@ -85,7 +85,7 @@ func (c *CategoryRepo) GetCategory(id int64) (*category_entity.Category, error) 
 	cacheRepo := cache.NewCacheRepository("Redis", c.p)
 	_ = cacheRepo.GetKey(fmt.Sprintf("%v_CATEGORIES", id), &category)
 	if category == nil {
-		err := c.p.DB.Debug().Where("id = ?", id).Take(&category).Error
+		err := c.p.DB.Debug().Preload("ParentCategories").Where("id = ?", id).Take(&category).Error
 		if err != nil {
 			fmt.Println("Failed to get product")
 			return nil, err
@@ -101,7 +101,7 @@ func (c *CategoryRepo) GetCategory(id int64) (*category_entity.Category, error) 
 
 func (c *CategoryRepo) GetAllCategories() ([]category_entity.Category, error) {
 	var categories []category_entity.Category
-	err := c.p.DB.Debug().Find(&categories).Error
+	err := c.p.DB.Debug().Preload("ParentCategories").Find(&categories).Error
 	if err != nil {
 		return nil, err
 	}

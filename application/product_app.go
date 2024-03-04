@@ -1,12 +1,15 @@
 package application
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/inventory_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/product_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/product_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/inventories"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/products"
+	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/search"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 )
 
@@ -36,6 +39,7 @@ func ConvertProductandInventory(productForInventory product_entity.ProductForInv
 	return product, inventory
 
 }
+
 func (a *productApp) SaveProductAndInventory(productForInventory product_entity.ProductForInventory) (*product_entity.Product, *inventory_entity.Inventory, map[string]string) {
     product, inventory := ConvertProductandInventory(productForInventory)
     repoProduct := products.NewProductRepository(a.p, a.c)
@@ -74,8 +78,21 @@ func (a *productApp) DeleteProduct(productId int64) error {
 }
 
 func (a *productApp) SearchProduct(name string) ([]product_entity.Product, error) {
-	repoProduct := products.NewProductRepository(a.p, a.c)
-	return repoProduct.SearchProduct(name)
+	repoSearch := search.NewSearchRepository("Mongo", a.p, a.c)
+	indexName := "products"
+	// Extract the results from the cursor
+	var results []product_entity.Product
+	err := repoSearch.SearchDocByName(name, indexName, &results)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	if len(results) == 0 {
+		fmt.Println("No such product of name: " + name)
+	}
+
+	return results, nil
 }
 
 func (a *productApp) UpdateProductsInSearchDB() (error) {

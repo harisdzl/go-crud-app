@@ -32,7 +32,7 @@ var _ warehouse_repository.WarehouseRepository = &WarehouseRepo{}
 func (r *WarehouseRepo) SaveWarehouse(warehouse *warehouse_entity.Warehouse) (*warehouse_entity.Warehouse, map[string]string) {
 
 	cacheRepo := cache.NewCacheRepository("Redis", r.p)
-	searchRepo := search.NewSearchRepository("Mongo", r.p)
+	searchRepo := search.NewSearchRepository("Mongo", r.p, r.c)
 
 	dbErr := map[string]string{}
 	err := r.p.DB.Debug().Create(&warehouse).Error
@@ -93,7 +93,7 @@ func (r *WarehouseRepo) GetAllWarehouses() ([]warehouse_entity.Warehouse, error)
 
 func (r *WarehouseRepo) UpdateWarehouse(warehouse *warehouse_entity.Warehouse) (*warehouse_entity.Warehouse, error) {
 	cacheRepo := cache.NewCacheRepository("Redis", r.p)
-	searchRepo := search.NewSearchRepository("Mongo", r.p)
+	searchRepo := search.NewSearchRepository("Mongo", r.p, r.c)
 	collectionName := "warehouses"
 
 	err := r.p.DB.Debug().Where("id = ?", warehouse.ID).Updates(&warehouse).Error
@@ -123,7 +123,7 @@ func (r *WarehouseRepo) UpdateWarehouse(warehouse *warehouse_entity.Warehouse) (
 
 func (r *WarehouseRepo) DeleteWarehouse(id int64) error {
 	var warehouse warehouse_entity.Warehouse
-	searchRepo := search.NewSearchRepository("Mongo", r.p)
+	searchRepo := search.NewSearchRepository("Mongo", r.p, r.c)
 	collectionName := "warehouses"
 	fieldName := "id"
 	err := r.p.DB.Debug().Where("id = ?", id).Delete(&warehouse).Error
@@ -145,7 +145,7 @@ func (r *WarehouseRepo) DeleteWarehouse(id int64) error {
 
 func (r *WarehouseRepo) SearchWarehouse(name string) ([]warehouse_entity.Warehouse, error) {
 
-	searchRepo := search.NewSearchRepository("Mongo", r.p)
+	searchRepo := search.NewSearchRepository("Mongo", r.p, r.c)
 	indexName := "warehouses"
 
 	// Extract the results from the cursor
@@ -166,7 +166,7 @@ func (r *WarehouseRepo) SearchWarehouse(name string) ([]warehouse_entity.Warehou
 
 
 func (r *WarehouseRepo) UpdateWarehousesInSearchDB() error {
-	searchRepo := search.NewSearchRepository("Mongo", r.p)
+	searchRepo := search.NewSearchRepository("Mongo", r.p, r.c)
 	collectionName := "warehouses"
 
 	warehouses, err := r.GetAllWarehouses()

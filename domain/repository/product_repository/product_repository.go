@@ -12,7 +12,7 @@ type ProductRepository interface {
 	GetAllProducts() ([]product_entity.Product, error)
 	UpdateProduct(*product_entity.Product) (*product_entity.Product, error)
 	DeleteProduct(int64) error
-	SearchProduct(string) ([]product_entity.Product, error)
+	// SearchProduct(string) ([]product_entity.Product, error)
 	UpdateProductsInSearchDB() (error)
 }
 

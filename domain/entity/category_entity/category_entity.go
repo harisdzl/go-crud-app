@@ -7,4 +7,5 @@ type Category struct {
 	ID uint64 `json:"id"`
 	ParentID int64 `gorm:"size:100;not null;" json:"parent_id"`
 	Name string `gorm:"size:100;not null;" json:"name"`
+	ParentCategories []Category `gorm:"foreignKey:ID;references:ParentID" json:"ParentCategories"`
 }

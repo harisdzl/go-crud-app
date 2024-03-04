@@ -4,6 +4,7 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/domain/entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/category_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/image_entity"
+	"github.com/harisquqo/quqo-challenge-1/domain/entity/inventory_entity"
 )
 
 type Product struct {
@@ -15,6 +16,7 @@ type Product struct {
     CategoryID  uint64 `gorm:"size:100;not null;" json:"category_id"`
     Category    category_entity.Category `gorm:"foreignKey:ID;references:CategoryID" json:"category"`
     Images      []image_entity.Image `gorm:"foreignKey:ProductID;references:ID" json:"images"`
+	Inventory	inventory_entity.Inventory `gorm:"foreignKey:ProductID;references:ID" json:"inventory"`
 }
 
 type ProductForInventory struct {

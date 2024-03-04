@@ -2,6 +2,7 @@ package order_entity
 
 import (
 	"github.com/harisquqo/quqo-challenge-1/domain/entity"
+	"github.com/harisquqo/quqo-challenge-1/domain/entity/ordereditem_entity"
 )
 
 type Order struct {
@@ -13,6 +14,7 @@ type Order struct {
 	CustomerID int64 `gorm:"not null;" json:"customer_id"`
 	WarehouseID uint64 `gorm:"size:100;not null;" json:"warehouse_id"`
 	Status string `gorm:"size:255;not null;" json:"status"`
+	OrderedItems []ordereditem_entity.OrderedItem `gorm:"foreignKey:OrderID;references:ID" json:"ordered_items"`
 }
 
 

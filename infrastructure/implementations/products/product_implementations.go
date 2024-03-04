@@ -34,7 +34,7 @@ var _ product_repository.ProductRepository = &ProductRepo{}
 func (r *ProductRepo) SaveProduct(product *product_entity.Product) (*product_entity.Product, map[string]string) {
 
 	cacheRepo := cache.NewCacheRepository("Redis", r.p)
-	searchRepo := search.NewSearchRepository("Mongo", r.p)
+	searchRepo := search.NewSearchRepository("Mongo", r.p, r.c)
 
 	dbErr := map[string]string{}
 	err := r.p.DB.Debug().Create(&product).Error
@@ -108,7 +108,12 @@ func (r *ProductRepo) GetProduct(id int64) (*product_entity.Product, error) {
     cacheRepo := cache.NewCacheRepository("Redis", r.p)
     _ = cacheRepo.GetKey(fmt.Sprintf("%v_PRODUCTS", id), &product)
     if product == nil {
-        err := r.p.DB.Debug().Preload("Category").Preload("Images").Where("id = ?", id).Take(&product).Error
+        err := r.p.DB.Debug().
+		Preload("Category").
+		Preload("ParentCategories").
+		Preload("Images").
+		Preload("Inventory").
+		Where("id = ?", id).Take(&product).Error
         if err != nil {
             fmt.Println("Failed to get product")
             return nil, err
@@ -126,7 +131,12 @@ func (r *ProductRepo) GetProduct(id int64) (*product_entity.Product, error) {
 
 func (r *ProductRepo) GetAllProducts() ([]product_entity.Product, error) {
 	var products []product_entity.Product
-	err := r.p.DB.Debug().Preload("Category").Preload("Images").Find(&products).Error
+	err := r.p.DB.Debug().
+	Preload("Category").
+	Preload("ParentCategories").
+	Preload("Images").
+	Preload("Inventory").
+	Find(&products).Error
 
 	if err != nil {
 		return nil, err
@@ -171,7 +181,7 @@ func (r *ProductRepo) UpdateProduct(product *product_entity.Product) (*product_e
 
 func (r *ProductRepo) DeleteProduct(id int64) error {
 	var product product_entity.Product
-	searchRepo := search.NewSearchRepository("Mongo", r.p)
+	searchRepo := search.NewSearchRepository("Mongo", r.p, r.c)
 	collectionName := "products"
 	fieldName := "id"
 	err := r.p.DB.Debug().Where("id = ?", id).Delete(&product).Error
@@ -191,30 +201,10 @@ func (r *ProductRepo) DeleteProduct(id int64) error {
 	return nil
 }
 
-func (r *ProductRepo) SearchProduct(name string) ([]product_entity.Product, error) {
-
-	searchRepo := search.NewSearchRepository("Mongo", r.p)
-	indexName := "products"
-
-	// Extract the results from the cursor
-	var results []product_entity.Product
-
-	err := searchRepo.SearchDocByName(name, indexName, &results)
-	
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	if len(results) == 0 {
-		fmt.Println("No such product of name: " + name)
-	}
-
-    return results, nil
-}
 
 
 func (r *ProductRepo) UpdateProductsInSearchDB() error {
-	searchRepo := search.NewSearchRepository("Mongo", r.p)
+	searchRepo := search.NewSearchRepository("Mongo", r.p, r.c)
 	collectionName := "products"
 
 	products, err := r.GetAllProducts()

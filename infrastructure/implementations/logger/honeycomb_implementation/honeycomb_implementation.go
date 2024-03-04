@@ -34,7 +34,7 @@ func NewHoneycombRepository(p *base.Persistence, c *gin.Context, info string) *H
     newCtx, span := tracer.Start(ctx, info)
 
     // Set the otel_context in the Gin context
-    c.Set("otel_context", newCtx)
+    defer c.Set("otel_context", newCtx)
 
     return &HoneycombRepo{p, c, span}
 }

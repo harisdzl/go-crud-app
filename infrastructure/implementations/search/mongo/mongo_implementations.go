@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/search_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/config"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
@@ -17,6 +18,7 @@ import (
 
 type mongoRepo struct {
 	p *base.Persistence
+	c *gin.Context
 }
 
 
@@ -183,6 +185,6 @@ func (m mongoRepo) SearchDocByName(name string, indexName string, src interface{
 }
 
 
-func NewMongoRepository(p *base.Persistence) search_repository.SearchRepository {
-	return &mongoRepo{p}
+func NewMongoRepository(p *base.Persistence, c *gin.Context) search_repository.SearchRepository {
+	return &mongoRepo{p, c}
 }

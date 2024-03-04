@@ -8,6 +8,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/product_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/search_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
@@ -15,10 +16,11 @@ import (
 
 type opensearchRepo struct {
 	p *base.Persistence
+	c *gin.Context
 }
 
-func NewOpenSearchRepository(p *base.Persistence) search_repository.SearchRepository {
-	return &opensearchRepo{p}
+func NewOpenSearchRepository(p *base.Persistence, c *gin.Context) search_repository.SearchRepository {
+	return &opensearchRepo{p, c}
 }
 
 func (o *opensearchRepo) InsertDoc(indexName string, value interface{}) error {
