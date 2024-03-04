@@ -110,7 +110,6 @@ func (r *ProductRepo) GetProduct(id int64) (*product_entity.Product, error) {
     if product == nil {
         err := r.p.DB.Debug().
 		Preload("Category").
-		Preload("ParentCategories").
 		Preload("Images").
 		Preload("Inventory").
 		Where("id = ?", id).Take(&product).Error
@@ -133,7 +132,6 @@ func (r *ProductRepo) GetAllProducts() ([]product_entity.Product, error) {
 	var products []product_entity.Product
 	err := r.p.DB.Debug().
 	Preload("Category").
-	Preload("ParentCategories").
 	Preload("Images").
 	Preload("Inventory").
 	Find(&products).Error
