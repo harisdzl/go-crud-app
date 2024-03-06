@@ -35,7 +35,7 @@ func (r *ProductRepo) SaveProduct(product *product_entity.Product) (*product_ent
 
 	cacheRepo := cache.NewCacheRepository("Redis", r.p)
 	searchRepo := search.NewSearchRepository("Mongo", r.p, r.c)
-
+	
 	dbErr := map[string]string{}
 	err := r.p.DB.Debug().Create(&product).Error
 	collectionName := "products"

@@ -15,6 +15,7 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/orders"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/products"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type OrderApp struct {
@@ -26,7 +27,7 @@ func NewOrderApplication(p *base.Persistence, c *gin.Context) order_repository.O
 	return &OrderApp{p, c}
 }
 
-func (a *OrderApp) CalculateTotalCost(ctx *gin.Context, rawOrder order_entity.RawOrder) float64 {
+func (a *OrderApp) CalculateTotalCost(rawOrder order_entity.RawOrder) float64 {
 	var totalCost float64
 
 	channels := []string{"Zap", "Honeycomb"}
@@ -56,6 +57,7 @@ func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_enti
 	var errTx error
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, a.c, "application/SaveOrderFromRaw")
+	a.c.Set("otel_context", trace.ContextWithSpan(a.c, loggerRepo.Span))
 
 	defer loggerRepo.Span.End()
 	if loggerErr != nil {
@@ -90,7 +92,7 @@ func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_enti
 	}
 
 	// Calculates total costs of all the products
-	totalCost := a.CalculateTotalCost(a.c, rawOrder)
+	totalCost := a.CalculateTotalCost(rawOrder)
 	// Set other fields of the order entity
 	order.TotalCost = totalCost
 	totalCheckout := totalCost + order.TotalFees
@@ -146,6 +148,14 @@ func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_enti
 
 
 func (a *OrderApp) GetOrder(OrderId int64) (*order_entity.Order, error) {
+	channels := []string{"Zap", "Honeycomb"}
+	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, a.c, "application/GetOrder")
+	a.c.Set("otel_context", trace.ContextWithSpan(a.c, loggerRepo.Span))
+	defer loggerRepo.Span.End()
+	if loggerErr != nil {
+		return nil, loggerErr
+	}
+
 	repoOrder := orders.NewOrderRepository(a.p, a.c)
 	return repoOrder.GetOrder(OrderId)
 }
@@ -156,6 +166,16 @@ func (a *OrderApp) GetAllOrders() ([]order_entity.Order, error) {
 }
 	
 func (a *OrderApp) UpdateOrder(Order *order_entity.Order) (*order_entity.Order, error) {
+	channels := []string{"Zap", "Honeycomb"}
+	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, a.c, "application/UpdateOrder")
+	a.c.Set("otel_context", trace.ContextWithSpan(a.c, loggerRepo.Span))
+
+	defer loggerRepo.Span.End()
+	if loggerErr != nil {
+		return nil, loggerErr
+	}
+
+
 	repoOrder := orders.NewOrderRepository(a.p, a.c)
 	return repoOrder.UpdateOrder(Order)
 }

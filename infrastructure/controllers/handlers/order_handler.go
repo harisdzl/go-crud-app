@@ -13,6 +13,7 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/order_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type Order struct {
@@ -30,6 +31,7 @@ func (or Order) SaveOrder(c *gin.Context) {
 	// Start a new span for the handler function
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, or.Persistence, c, "handlers/SaveOrder")
+	c.Set("otel_context", trace.ContextWithSpan(c, loggerRepo.Span))
 	defer loggerRepo.Span.End()
 	if loggerErr != nil {
 		loggerRepo.Warn("Error in initializing logger", map[string]interface{}{})
@@ -195,6 +197,14 @@ func (or Order) DeleteOrder(c *gin.Context) {
 //	@Failure		500			{object}	entity.ResponseContext	"Internal server error"
 //	@Router			/orders/{order_id} [put]
 func (or Order) UpdateOrder(c *gin.Context) {
+	// Start a new span for the handler function
+	channels := []string{"Zap", "Honeycomb"}
+	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, or.Persistence, c, "handlers/UpdateOrder")
+	c.Set("otel_context", trace.ContextWithSpan(c, loggerRepo.Span))
+	defer loggerRepo.Span.End()
+	if loggerErr != nil {
+		loggerRepo.Warn("Error in initializing logger", map[string]interface{}{})
+	}
 	responseContextData := entity.ResponseContext{Ctx: c}
 	orderID, err := strconv.ParseInt(c.Param("order_id"), 10, 64)
 	
@@ -219,7 +229,8 @@ func (or Order) UpdateOrder(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, responseContextData.ResponseData(entity.StatusFail, "Invalid JSON", ""))
 		return
 	}
-
+	
+	c.Set("otel_context", trace.ContextWithSpan(c, loggerRepo.Span))
 	or.OrderRepo = application.NewOrderApplication(or.Persistence, c)
 
 	// Update the Order

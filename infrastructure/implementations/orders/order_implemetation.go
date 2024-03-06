@@ -28,6 +28,7 @@ var _ order_repository.OrderRepository = &OrderRepo{}
 func (o *OrderRepo) SaveOrder(tx *gorm.DB, order *order_entity.Order) (*order_entity.Order, error) {
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, o.p, o.c, "implementations/SaveOrder")
+	
 	defer loggerRepo.Span.End()
 
 	if loggerErr != nil {
@@ -55,7 +56,7 @@ func (o *OrderRepo) SaveOrder(tx *gorm.DB, order *order_entity.Order) (*order_en
 			}
 		}()
 	}
-	err := tx.Debug().Create(&order).Error
+	err := tx.Debug().Create(&order).Preload("OrderedItems").Error
 	if err != nil {
 		// tracer.Span.RecordError(err)
 		fmt.Println("Failed to create order")
@@ -69,6 +70,15 @@ func (o *OrderRepo) SaveOrder(tx *gorm.DB, order *order_entity.Order) (*order_en
 
 
 func (o *OrderRepo) GetOrder(id int64) (*order_entity.Order, error) {
+	channels := []string{"Zap", "Honeycomb"}
+	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, o.p, o.c, "implementations/GetOrder")
+	
+	defer loggerRepo.Span.End()
+
+	if loggerErr != nil {
+		return nil, loggerErr
+	}
+
 	var order *order_entity.Order
 	cacheRepo := cache.NewCacheRepository("Redis", o.p)
 	_ = cacheRepo.GetKey(fmt.Sprintf("%v_ORDER", id), &order)
@@ -101,6 +111,15 @@ func (o *OrderRepo) GetAllOrders() ([]order_entity.Order, error) {
 }
 
 func (o *OrderRepo) UpdateOrder(order *order_entity.Order) (*order_entity.Order, error) {
+	channels := []string{"Zap", "Honeycomb"}
+	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, o.p, o.c, "implementations/UpdateOrder")
+	
+	defer loggerRepo.Span.End()
+
+	if loggerErr != nil {
+		return nil, loggerErr
+	}
+
 	cacheRepo := cache.NewCacheRepository("Redis", o.p)
 
 

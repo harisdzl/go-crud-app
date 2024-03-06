@@ -22,20 +22,15 @@ type HoneycombRepo struct {
 func NewHoneycombRepository(p *base.Persistence, c *gin.Context, info string) *HoneycombRepo {
     // Retrieve otel_context from Gin context if it exists
     ctxValue, exists := c.Get("otel_context")
+    // Implement info logging with Honeycomb using the retrieved context
     var ctx context.Context
     if exists {
         ctx, _ = ctxValue.(context.Context)
     } else {
         ctx = c.Request.Context()
     }
-
-    // Implement info logging with Honeycomb using the retrieved context
     tracer := p.Logger.Honeycomb
-    newCtx, span := tracer.Start(ctx, info)
-
-    // Set the otel_context in the Gin context
-    defer c.Set("otel_context", newCtx)
-
+    _, span := tracer.Start(ctx, info)
     return &HoneycombRepo{p, c, span}
 }
 // Debug logs a debug message
