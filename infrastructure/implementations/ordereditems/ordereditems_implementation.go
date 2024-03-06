@@ -24,7 +24,8 @@ func NewOrderedItemsRepository(p *base.Persistence, c *gin.Context) *OrderedItem
 func (o *OrderedItemsRepo) SaveOrderedItem(tx *gorm.DB, orderedItem *ordereditem_entity.OrderedItem) (*ordereditem_entity.OrderedItem, error) {
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, o.p, o.c, "implementations/SaveOrderedItem")
-	defer loggerRepo.Span.End()
+	defer loggerRepo.End()
+	
 	if loggerErr != nil {
 		return nil, loggerErr
 	}

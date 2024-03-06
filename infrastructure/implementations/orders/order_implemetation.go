@@ -29,8 +29,8 @@ func (o *OrderRepo) SaveOrder(tx *gorm.DB, order *order_entity.Order) (*order_en
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, o.p, o.c, "implementations/SaveOrder")
 	
-	defer loggerRepo.Span.End()
-
+	defer loggerRepo.End()
+	
 	if loggerErr != nil {
 		return nil, loggerErr
 	}
@@ -73,7 +73,7 @@ func (o *OrderRepo) GetOrder(id int64) (*order_entity.Order, error) {
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, o.p, o.c, "implementations/GetOrder")
 	
-	defer loggerRepo.Span.End()
+	defer loggerRepo.End()
 
 	if loggerErr != nil {
 		return nil, loggerErr
@@ -114,7 +114,7 @@ func (o *OrderRepo) UpdateOrder(order *order_entity.Order) (*order_entity.Order,
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, o.p, o.c, "implementations/UpdateOrder")
 	
-	defer loggerRepo.Span.End()
+	defer loggerRepo.End()
 
 	if loggerErr != nil {
 		return nil, loggerErr

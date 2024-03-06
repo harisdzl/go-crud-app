@@ -101,8 +101,7 @@ func (r *ProductRepo) GetProduct(id int64) (*product_entity.Product, error) {
     if loggerErr != nil {
         return nil, loggerErr
     }
-    defer loggerRepo.Span.End()
-    
+	defer loggerRepo.End()    
     var product *product_entity.Product
 
     cacheRepo := cache.NewCacheRepository("Redis", r.p)

@@ -1,9 +1,6 @@
 package logger
 
 import (
-	"context"
-	"log"
-
 	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/logger_repository"
 	honeycomb "github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger/honeycomb_implementation"
@@ -17,7 +14,7 @@ type LoggerRepo struct {
 	loggers []logger_repository.LoggerRepository
 	c *gin.Context
 	p *base.Persistence
-	Span trace.Span
+	span trace.Span
 }
 
 const (
@@ -46,7 +43,7 @@ func NewLoggerRepository(channels []string, p *base.Persistence, c *gin.Context,
 	// 	return nil, errors.New("no supported logger type found in the provided channels")
 	// }
 
-	return LoggerRepo{loggers: loggers, c: c, Span: honeycombRepo.Span}, nil
+	return LoggerRepo{loggers: loggers, c: c, span: honeycombRepo.GetSpan()}, nil
 }
 
 // Debug logs a debug message
@@ -87,14 +84,10 @@ func (l *LoggerRepo) Fatal(msg string, fields map[string]interface{}) {
 // End function
 
 func (l *LoggerRepo) End() {
-	ctxValue, exists := l.c.Get("otel_context")
-    var ctx context.Context
-    if exists {
-        ctx, _ = ctxValue.(context.Context)
-    } else {
-        ctx = l.c.Request.Context()
-    }
-	log.Println(ctx)
-	span := trace.SpanFromContext(ctx)
-	span.End()
+	l.span.End()
+}
+
+// SetContextWithSpan sets the context in the Gin context with the provided span
+func (l *LoggerRepo) SetContextWithSpan() {
+    l.c.Set("otel_context", trace.ContextWithSpan(l.c, l.span))
 }

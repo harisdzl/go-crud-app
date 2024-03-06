@@ -16,7 +16,7 @@ import (
 type HoneycombRepo struct {
 	p *base.Persistence
 	c *gin.Context
-	Span trace.Span
+	span trace.Span
 }
 
 func NewHoneycombRepository(p *base.Persistence, c *gin.Context, info string) *HoneycombRepo {
@@ -41,7 +41,7 @@ func (h *HoneycombRepo) Debug(msg string, fields map[string]interface{}) {
 		return
 	}
 
-	h.Span.AddEvent(msg, trace.WithAttributes(
+	h.span.AddEvent(msg, trace.WithAttributes(
 		attribute.String("level", "Debug"),
 		attribute.String("data", string(jsonData))))
 	
@@ -56,7 +56,7 @@ func (h *HoneycombRepo) Info(msg string, fields map[string]interface{}) {
 		return
 	}
 
-	h.Span.AddEvent(msg, trace.WithAttributes(
+	h.span.AddEvent(msg, trace.WithAttributes(
 		attribute.String("level", "Info"),
 		attribute.String("data", string(jsonData))))
 	
@@ -68,7 +68,7 @@ func (h *HoneycombRepo) Error(msg string, fields map[string]interface{}) {
         return
     }
 
-    h.Span.RecordError(errors.New(msg), trace.WithAttributes(
+    h.span.RecordError(errors.New(msg), trace.WithAttributes(
 		attribute.String("level", "Error"),
         attribute.String("data", string(jsonData))))
 }
@@ -84,7 +84,7 @@ func (h *HoneycombRepo) Warn(msg string, fields map[string]interface{}) {
         return
     }
 
-    h.Span.AddEvent(msg, trace.WithAttributes(
+    h.span.AddEvent(msg, trace.WithAttributes(
 		attribute.String("level", "Warn"),
         attribute.String("data", string(jsonData))))
 }
@@ -99,9 +99,13 @@ func (h *HoneycombRepo) Fatal(msg string, fields map[string]interface{}) {
         return
     }
 
-    h.Span.AddEvent(msg, trace.WithAttributes(
+    h.span.AddEvent(msg, trace.WithAttributes(
 		attribute.String("level", "Fatal"),
         attribute.String("data", string(jsonData))))
 
 	os.Exit(1)
+}
+
+func (h *HoneycombRepo) GetSpan() trace.Span {
+    return h.span
 }

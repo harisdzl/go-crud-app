@@ -15,7 +15,6 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/orders"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/products"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type OrderApp struct {
@@ -36,7 +35,7 @@ func (a *OrderApp) CalculateTotalCost(rawOrder order_entity.RawOrder) float64 {
 		loggerRepo.Error("Failed to initialize logger", map[string]interface{}{})
 	}
 
-	defer loggerRepo.Span.End()
+	defer loggerRepo.End()
 	for productID, quantity := range rawOrder.Products {
 		id, _ := strconv.ParseInt(productID, 10, 64)
 		product, err := products.NewProductRepository(a.p, a.c).GetProduct(id); if err != nil {
@@ -57,9 +56,8 @@ func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_enti
 	var errTx error
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, a.c, "application/SaveOrderFromRaw")
-	a.c.Set("otel_context", trace.ContextWithSpan(a.c, loggerRepo.Span))
-
-	defer loggerRepo.Span.End()
+	loggerRepo.SetContextWithSpan()
+	defer loggerRepo.End()
 	if loggerErr != nil {
 		return nil, loggerErr
 	}
@@ -150,8 +148,8 @@ func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_enti
 func (a *OrderApp) GetOrder(OrderId int64) (*order_entity.Order, error) {
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, a.c, "application/GetOrder")
-	a.c.Set("otel_context", trace.ContextWithSpan(a.c, loggerRepo.Span))
-	defer loggerRepo.Span.End()
+	loggerRepo.SetContextWithSpan()
+	defer loggerRepo.End()
 	if loggerErr != nil {
 		return nil, loggerErr
 	}
@@ -168,9 +166,8 @@ func (a *OrderApp) GetAllOrders() ([]order_entity.Order, error) {
 func (a *OrderApp) UpdateOrder(Order *order_entity.Order) (*order_entity.Order, error) {
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, a.c, "application/UpdateOrder")
-	a.c.Set("otel_context", trace.ContextWithSpan(a.c, loggerRepo.Span))
-
-	defer loggerRepo.Span.End()
+	loggerRepo.SetContextWithSpan()
+	defer loggerRepo.End()
 	if loggerErr != nil {
 		return nil, loggerErr
 	}

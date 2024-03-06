@@ -13,7 +13,6 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/order_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type Order struct {
@@ -31,8 +30,9 @@ func (or Order) SaveOrder(c *gin.Context) {
 	// Start a new span for the handler function
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, or.Persistence, c, "handlers/SaveOrder")
-	c.Set("otel_context", trace.ContextWithSpan(c, loggerRepo.Span))
-	defer loggerRepo.Span.End()
+	loggerRepo.SetContextWithSpan()
+	defer loggerRepo.End()
+
 	if loggerErr != nil {
 		loggerRepo.Warn("Error in initializing logger", map[string]interface{}{})
 	}
@@ -200,8 +200,9 @@ func (or Order) UpdateOrder(c *gin.Context) {
 	// Start a new span for the handler function
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, or.Persistence, c, "handlers/UpdateOrder")
-	c.Set("otel_context", trace.ContextWithSpan(c, loggerRepo.Span))
-	defer loggerRepo.Span.End()
+	loggerRepo.SetContextWithSpan()
+
+	defer loggerRepo.End()
 	if loggerErr != nil {
 		loggerRepo.Warn("Error in initializing logger", map[string]interface{}{})
 	}
@@ -230,7 +231,7 @@ func (or Order) UpdateOrder(c *gin.Context) {
 		return
 	}
 	
-	c.Set("otel_context", trace.ContextWithSpan(c, loggerRepo.Span))
+	loggerRepo.SetContextWithSpan()
 	or.OrderRepo = application.NewOrderApplication(or.Persistence, c)
 
 	// Update the Order
