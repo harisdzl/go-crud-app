@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -32,7 +33,7 @@ func NewHoneycombRepository(p *base.Persistence, c *gin.Context, info string) *H
         log.Println("Getting this from" + info)
         ctx = c.Request.Context()
     }
-    tracer := p.Logger.Honeycomb
+    tracer := otel.Tracer("")
     _, span := tracer.Start(ctx, info)
     
     // Log information about the span

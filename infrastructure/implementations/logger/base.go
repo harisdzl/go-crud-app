@@ -39,11 +39,16 @@ func NewLoggerRepository(channels []string, p *base.Persistence, c *gin.Context,
 		}
 	}
 
+	var span trace.Span
+	if honeycombRepo != nil {
+		span = honeycombRepo.GetSpan()
+	}
+
 	// if len(loggers) == 0 {
 	// 	return nil, errors.New("no supported logger type found in the provided channels")
 	// }
 
-	return LoggerRepo{loggers: loggers, c: c, span: honeycombRepo.GetSpan()}, nil
+	return LoggerRepo{loggers: loggers, c: c, span: span}, nil
 }
 
 // Debug logs a debug message
@@ -92,5 +97,5 @@ func (l *LoggerRepo) SetContextWithSpan() {
     // if l.span == nil {
     //     return // If span is nil, do nothing
     // }
-    l.c.Set("otel_context", trace.ContextWithSpan(l.c, l.span))
+    l.c.Set("otel_context", trace.ContextWithSpan(l.c.Request.Context(), l.span))
 }

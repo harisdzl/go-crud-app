@@ -82,12 +82,13 @@ func (a *productApp) DeleteProduct(productId int64) error {
 func (a *productApp) SearchProduct(name string) ([]product_entity.Product, error) {
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, a.c, "application/SearchProduct")
-	loggerRepo.SetContextWithSpan()
-	defer loggerRepo.End()
-
 	if loggerErr != nil {
 		return nil, loggerErr
 	}
+	loggerRepo.SetContextWithSpan()
+	defer loggerRepo.End()
+
+
 
 	repoSearch := search.NewSearchRepository("Mongo", a.p, a.c)
 

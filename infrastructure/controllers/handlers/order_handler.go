@@ -30,12 +30,13 @@ func (or Order) SaveOrder(c *gin.Context) {
 	// Start a new span for the handler function
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, or.Persistence, c, "handlers/SaveOrder")
-	loggerRepo.SetContextWithSpan()
-	defer loggerRepo.End()
-
 	if loggerErr != nil {
 		loggerRepo.Warn("Error in initializing logger", map[string]interface{}{})
 	}
+	loggerRepo.SetContextWithSpan()
+	defer loggerRepo.End()
+
+
 	
 	responseContextData := entity.ResponseContext{Ctx: c}
 	rawOrder := order_entity.RawOrder{}
