@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -25,14 +26,22 @@ func NewHoneycombRepository(p *base.Persistence, c *gin.Context, info string) *H
     // Implement info logging with Honeycomb using the retrieved context
     var ctx context.Context
     if exists {
+        log.Println("Otel context exists: Getting this from " + info)
         ctx, _ = ctxValue.(context.Context)
     } else {
+        log.Println("Getting this from" + info)
         ctx = c.Request.Context()
     }
     tracer := p.Logger.Honeycomb
     _, span := tracer.Start(ctx, info)
+    
+    // Log information about the span
+    log.Println("Trace ID: ", span.SpanContext().TraceID().String())
+    log.Println("Span created: ", span.SpanContext().SpanID().String())
+
     return &HoneycombRepo{p, c, span}
 }
+
 // Debug logs a debug message
 func (h *HoneycombRepo) Debug(msg string, fields map[string]interface{}) {
 	jsonData, jsonDataErr := json.Marshal(fields)

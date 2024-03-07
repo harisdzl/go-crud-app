@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/product_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/search_repository"
+	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 )
 
@@ -103,6 +104,14 @@ func (o *opensearchRepo) DeleteMultipleDoc(fieldName string, indexName string, i
 }
 
 func (o *opensearchRepo) DeleteAllDoc(indexName string, value []interface{}) error {
+	channels := []string{"Zap", "Honeycomb"}
+    loggerRepo, loggerErr := logger.NewLoggerRepository(channels, o.p, o.c, "implementations/DeleteAllDoc")
+
+    if loggerErr != nil {
+        return loggerErr
+    }
+	defer loggerRepo.End()    
+
     ctx := context.TODO()
 
     // Define a query that matches all documents
@@ -139,6 +148,13 @@ func (o *opensearchRepo) DeleteAllDoc(indexName string, value []interface{}) err
 }
 
 func (o *opensearchRepo) InsertAllDoc(indexName string, value []interface{}) error {
+	channels := []string{"Zap", "Honeycomb"}
+    loggerRepo, loggerErr := logger.NewLoggerRepository(channels, o.p, o.c, "implementations/InsertAllDoc")
+
+    if loggerErr != nil {
+        return loggerErr
+    }
+	defer loggerRepo.End()    
 	// Convert the value to JSON format
 
 	for _, p := range value {
@@ -176,6 +192,14 @@ func (o *opensearchRepo) InsertAllDoc(indexName string, value []interface{}) err
 }
 
 func (o *opensearchRepo) SearchDocByName(name string, indexName string, src interface{}) error {
+	channels := []string{"Zap", "Honeycomb"}
+    loggerRepo, loggerErr := logger.NewLoggerRepository(channels, o.p, o.c, "implementations/SearchDocByName")
+
+    if loggerErr != nil {
+        return loggerErr
+    }
+	defer loggerRepo.End()    
+
 	// Create a query string based on the provided name
 	queryString := fmt.Sprintf(`{
 		"query": {

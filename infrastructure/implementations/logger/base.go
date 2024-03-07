@@ -89,5 +89,8 @@ func (l *LoggerRepo) End() {
 
 // SetContextWithSpan sets the context in the Gin context with the provided span
 func (l *LoggerRepo) SetContextWithSpan() {
+    // if l.span == nil {
+    //     return // If span is nil, do nothing
+    // }
     l.c.Set("otel_context", trace.ContextWithSpan(l.c, l.span))
 }

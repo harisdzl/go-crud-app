@@ -14,7 +14,6 @@ func NewLogger() (*logger_entity.Logger, error) {
 
 	// Initialize Honeycomb Tracer
 	otelTracer := otel.Tracer("")
-	// ctx, span := otelTracer.Start("")
 
 	logger = &logger_entity.Logger{
 		Honeycomb: otelTracer,
