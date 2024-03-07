@@ -9,7 +9,6 @@ import (
 func ProductRoutes(router *gin.RouterGroup, p *base.Persistence) {
     products := handlers.NewProduct(p)
 
-    // products.UpdateProductSearchDB()
     
     router.POST("/products", products.SaveProduct)
     // router.POST("/products/multiple", products.SaveMultipleProducts)
@@ -18,4 +17,5 @@ func ProductRoutes(router *gin.RouterGroup, p *base.Persistence) {
     router.PUT("/products/:product_id", products.UpdateProduct)
     router.DELETE("/products/:product_id", products.DeleteProduct)
     router.GET("/products/search", products.SearchProduct)
+    router.POST("/products/search", products.UpdateProductSearchDB)
 }

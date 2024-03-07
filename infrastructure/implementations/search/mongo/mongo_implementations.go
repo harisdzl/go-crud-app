@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/search_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/config"
+	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -104,6 +105,13 @@ func (m mongoRepo) DeleteMultipleDoc(fieldName string, collectionName string, id
 }
 
 func (m mongoRepo) DeleteAllDoc(collectionName string, value []interface{}) (error) {
+	channels := []string{"Zap", "Honeycomb"}
+    loggerRepo, loggerErr := logger.NewLoggerRepository(channels, m.p, m.c, "implementations/DeleteAllDoc")
+
+    if loggerErr != nil {
+        return loggerErr
+    }
+	defer loggerRepo.End()    
 	// Check if there is a Mongo connection 
 	DBName := config.Configuration.GetString("mongoDb.dev.name")
 	if m.p.DbMongo == nil {
@@ -123,6 +131,14 @@ func (m mongoRepo) DeleteAllDoc(collectionName string, value []interface{}) (err
 }
 
 func (m mongoRepo) InsertAllDoc(collectionName string, value []interface{}) (error) {
+	channels := []string{"Zap", "Honeycomb"}
+    loggerRepo, loggerErr := logger.NewLoggerRepository(channels, m.p, m.c, "implementations/InsertAllDoc")
+
+    if loggerErr != nil {
+        return loggerErr
+    }
+	defer loggerRepo.End()    
+
 	// Check if there is a Mongo connection 
 	DBName := config.Configuration.GetString("mongoDb.dev.name")
 	if m.p.DbMongo == nil {
@@ -142,6 +158,14 @@ func (m mongoRepo) InsertAllDoc(collectionName string, value []interface{}) (err
 }
 
 func (m mongoRepo) SearchDocByName(name string, indexName string, src interface{}) error {
+	channels := []string{"Zap", "Honeycomb"}
+    loggerRepo, loggerErr := logger.NewLoggerRepository(channels, m.p, m.c, "implementations/SearchDocByName")
+
+    if loggerErr != nil {
+        return loggerErr
+    }
+	defer loggerRepo.End()   
+	
 	// Check if there is a Mongo connection 
 	DBName := config.Configuration.GetString("mongoDb.dev.name")
 	if m.p.DbMongo == nil {

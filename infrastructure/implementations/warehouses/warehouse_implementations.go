@@ -175,13 +175,19 @@ func (r *WarehouseRepo) UpdateWarehousesInSearchDB() error {
 		return nil
 	}
 
-	var allwarehouses []interface{}
+	var allWarehouses []interface{}
 
-	for _, p := range warehouses {
-		allwarehouses = append(allwarehouses, p)
-	}
-	searchDeleteAllErr := searchRepo.DeleteAllDoc(collectionName, allwarehouses)
-	searchInsertAll := searchRepo.InsertAllDoc(collectionName, allwarehouses)
+    for _, p := range warehouses {
+		searchWarehouse := map[string]interface{}{
+			"id" : p.ID,
+			"name" : p.Name,
+		}
+
+        allWarehouses = append(allWarehouses, searchWarehouse)
+    }
+
+	searchDeleteAllErr := searchRepo.DeleteAllDoc(collectionName, allWarehouses)
+	searchInsertAll := searchRepo.InsertAllDoc(collectionName, allWarehouses)
 
 	if searchDeleteAllErr != nil {
 		return errors.New("Fail to delete all docs")

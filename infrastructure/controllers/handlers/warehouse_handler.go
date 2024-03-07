@@ -277,14 +277,26 @@ func (pr *Warehouse) SearchWarehouse(c *gin.Context) {
 }
 
 
+// UpdateWarehouseSearchDB updates the warehouse search database.
+// @Summary     Update Warehouse Search Database
+// @Description Updates the warehouse search database with the latest warehouses.
+// @Tags        Warehouse
+// @Accept      json
+// @Produce     json
+// @Param       none    header  string  true    "No parameters required"
+// @Success     200     {object}    entity.ResponseContext   "Warehouse search database updated successfully"
+// @Failure     500     {object}    entity.ResponseContext   "Internal server error"
+// @Router      /update-warehouse-search [get]
 func (pr *Warehouse) UpdateWarehouseSearchDB(c *gin.Context) {
-	
+    responseContextData := entity.ResponseContext{Ctx: c}
+    pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence, c)
+    updateErr := pr.WarehouseRepo.UpdateWarehousesInSearchDB()
 
-	pr.WarehouseRepo = application.NewWarehouseApplication(pr.Persistence, c)
-	updateErr := pr.WarehouseRepo.UpdateWarehousesInSearchDB()
+    if updateErr != nil {
+        fmt.Println("fail to update Warehouses in mongodb")
+        c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, "Internal Server error", ""))
+        return
+    }
 
-	if updateErr != nil {
-		fmt.Println("fail to update Warehouses in mongbodb")
-
-	}
+    c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "Warehouses saved in search DB", ""))
 }

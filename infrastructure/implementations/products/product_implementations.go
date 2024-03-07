@@ -201,31 +201,47 @@ func (r *ProductRepo) DeleteProduct(id int64) error {
 
 
 func (r *ProductRepo) UpdateProductsInSearchDB() error {
-	searchRepo := search.NewSearchRepository("Mongo", r.p, r.c)
-	collectionName := "products"
+    channels := []string{"Zap", "Honeycomb"}
+    loggerRepo, loggerErr := logger.NewLoggerRepository(channels, r.p, r.c, "implementations/GetProduct")
 
-	products, err := r.GetAllProducts()
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
+    if loggerErr != nil {
+        return loggerErr
+    }
+	defer loggerRepo.End()    
 
-	var allProducts []interface{}
+    searchRepo := search.NewSearchRepository("Mongo", r.p, r.c)
+    collectionName := "products"
 
-	for _, p := range products {
-		allProducts = append(allProducts, p)
-	}
-	searchDeleteAllErr := searchRepo.DeleteAllDoc(collectionName, allProducts)
-	searchInsertAll := searchRepo.InsertAllDoc(collectionName, allProducts)
-	if searchDeleteAllErr != nil {
-		return errors.New("Fail to delete all docs")
-	}
+    products, err := r.GetAllProducts()
+    if err != nil {
+        fmt.Println(err)
+        return nil
+    }
 
-	if searchInsertAll != nil {
-		log.Println(searchInsertAll)
-		return errors.New("Fail to update search db with all products")
-	}
+    // Serialize products with only required fields
+    var allProducts []interface{}
 
-	return nil
+    for _, p := range products {
+		searchProduct := map[string]interface{}{
+			"id" : p.ID,
+			"name" : p.Name,
+			"description" : p.Description,
+			"category" : p.Category.Name,
+		}
 
+        allProducts = append(allProducts, searchProduct)
+    }
+
+    searchDeleteAllErr := searchRepo.DeleteAllDoc(collectionName, allProducts)
+    searchInsertAll := searchRepo.InsertAllDoc(collectionName, allProducts)
+    if searchDeleteAllErr != nil {
+        return errors.New("Fail to delete all docs")
+    }
+
+    if searchInsertAll != nil {
+        log.Println(searchInsertAll)
+        return errors.New("Fail to update search db with all products")
+    }
+
+    return nil
 }

@@ -2,12 +2,14 @@ package application
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/inventory_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/product_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/product_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/inventories"
+	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/products"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/search"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
@@ -78,12 +80,34 @@ func (a *productApp) DeleteProduct(productId int64) error {
 }
 
 func (a *productApp) SearchProduct(name string) ([]product_entity.Product, error) {
+	channels := []string{"Zap", "Honeycomb"}
+	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, a.c, "application/SearchProduct")
+	if loggerErr != nil {
+		return nil, loggerErr
+	}
+	loggerRepo.SetContextWithSpan()
+	defer loggerRepo.End()
+
+
+
 	repoSearch := search.NewSearchRepository("Mongo", a.p, a.c)
+
+	repoProduct := products.NewProductRepository(a.p, a.c)
+
 	indexName := "products"
 	// Extract the results from the cursor
-	var results []product_entity.Product
+	var results []map[string]interface{}
+	var searchProducts []product_entity.Product
 	err := repoSearch.SearchDocByName(name, indexName, &results)
 
+	for _, result := range results {
+		product, productErr := repoProduct.GetProduct(result["id"].(int64))
+		if productErr != nil {
+			return nil, productErr
+		}
+
+		searchProducts = append(searchProducts, *product)
+	}
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -91,8 +115,8 @@ func (a *productApp) SearchProduct(name string) ([]product_entity.Product, error
 	if len(results) == 0 {
 		fmt.Println("No such product of name: " + name)
 	}
-
-	return results, nil
+	log.Println(results)
+	return searchProducts, nil
 }
 
 func (a *productApp) UpdateProductsInSearchDB() (error) {

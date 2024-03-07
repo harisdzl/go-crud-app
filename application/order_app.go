@@ -56,11 +56,12 @@ func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_enti
 	var errTx error
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, a.c, "application/SaveOrderFromRaw")
-	loggerRepo.SetContextWithSpan()
-	defer loggerRepo.End()
 	if loggerErr != nil {
 		return nil, loggerErr
 	}
+
+	loggerRepo.SetContextWithSpan()
+	defer loggerRepo.End()
 
 	tx := a.p.DB.Begin()
 	if tx.Error != nil {
@@ -148,11 +149,12 @@ func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_enti
 func (a *OrderApp) GetOrder(OrderId int64) (*order_entity.Order, error) {
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, a.c, "application/GetOrder")
-	loggerRepo.SetContextWithSpan()
-	defer loggerRepo.End()
 	if loggerErr != nil {
 		return nil, loggerErr
 	}
+	loggerRepo.SetContextWithSpan()
+	defer loggerRepo.End()
+
 
 	repoOrder := orders.NewOrderRepository(a.p, a.c)
 	return repoOrder.GetOrder(OrderId)
@@ -166,11 +168,12 @@ func (a *OrderApp) GetAllOrders() ([]order_entity.Order, error) {
 func (a *OrderApp) UpdateOrder(Order *order_entity.Order) (*order_entity.Order, error) {
 	channels := []string{"Zap", "Honeycomb"}
 	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, a.c, "application/UpdateOrder")
-	loggerRepo.SetContextWithSpan()
-	defer loggerRepo.End()
 	if loggerErr != nil {
 		return nil, loggerErr
 	}
+	loggerRepo.SetContextWithSpan()
+	defer loggerRepo.End()
+
 
 
 	repoOrder := orders.NewOrderRepository(a.p, a.c)

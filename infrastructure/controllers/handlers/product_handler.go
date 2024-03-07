@@ -12,6 +12,7 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/inventory_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/product_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/product_repository"
+	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 )
 
@@ -252,6 +253,16 @@ func (pr *Product) UpdateProduct(c *gin.Context) {
 //	@Failure		500		{object}	entity.ResponseContext	"Internal server error"
 //	@Router			/products/search [get]
 func (pr *Product) SearchProduct(c *gin.Context) {
+	// Start a new span for the handler function
+	channels := []string{"Zap", "Honeycomb"}
+	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, pr.Persistence, c, "handlers/SearchProduct")
+	loggerRepo.SetContextWithSpan()
+	defer loggerRepo.End()
+
+	if loggerErr != nil {
+		loggerRepo.Warn("Error in initializing logger", map[string]interface{}{})
+	}
+	
 	responseContextData := entity.ResponseContext{Ctx: c}
 	var productsName = c.Query("name")
 	
@@ -276,13 +287,26 @@ func (pr *Product) SearchProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "", results))
 }
 
+// UpdateProductSearchDB updates the product search database.
+// @Summary     Update Product Search Database
+// @Description Updates the product search database with the latest products.
+// @Tags        Product
+// @Accept      json
+// @Produce     json
+// @Param       none    header  string  true    "No parameters required"
+// @Success     200     {object}    entity.ResponseContext   "Product search database updated successfully"
+// @Failure     500     {object}    entity.ResponseContext   "Internal server error"
+// @Router      /update-product-search [get]
 func (pr *Product) UpdateProductSearchDB(c *gin.Context) {
-	
+    responseContextData := entity.ResponseContext{Ctx: c}
+    pr.productRepo = application.NewProductApplication(pr.Persistence, c)
+    updateErr := pr.productRepo.UpdateProductsInSearchDB()
 
-	pr.productRepo = application.NewProductApplication(pr.Persistence, c)
-	updateErr := pr.productRepo.UpdateProductsInSearchDB()
+    if updateErr != nil {
+        log.Println(updateErr)
+        c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, "Internal Server error", ""))
+        return
+    }
 
-	if updateErr != nil {
-		log.Println(updateErr)
-	}
+	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "Products saved in search DB", ""))
 }
