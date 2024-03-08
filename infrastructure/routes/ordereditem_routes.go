@@ -9,6 +9,6 @@ import (
 func OrderedItemRoutes(router *gin.RouterGroup, p *base.Persistence) {
     orderedItems := handlers.NewOrderedItem(p)
     
-    router.GET("/ordereditems", orderedItems.GetAllOrderedItems)
-    router.GET("/orders/:order_id/ordereditems", orderedItems.GetAllOrderedItemsForOrder)
+    router.GET("admin/ordereditems", orderedItems.GetAllOrderedItems)
+    router.GET("admin/orders/:order_id/ordereditems", orderedItems.GetAllOrderedItemsForOrder)
 }

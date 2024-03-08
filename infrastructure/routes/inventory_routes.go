@@ -9,6 +9,6 @@ import (
 func InventoryRoutes(router *gin.RouterGroup, p *base.Persistence) {
     inventories := handlers.NewInventory(p)
        
-    router.GET("/products/:product_id/inventories", inventories.GetInventory)
-    router.PUT("/products/:product_id/inventories", inventories.UpdateInventory)
+    router.GET("admin/products/:product_id/inventories", inventories.GetInventory)
+    router.PUT("admin/products/:product_id/inventories", inventories.UpdateInventory)
 }

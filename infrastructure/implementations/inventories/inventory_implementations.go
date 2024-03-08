@@ -42,6 +42,20 @@ func (r *InventoryRepo) SaveInventory(inventory *inventory_entity.Inventory) (*i
 		dbErr["db_error"] = "database error"
 		return nil, dbErr
 	}
+	
+	logInventory := &inventory_entity.InventoryLog{
+		ProductID:     inventory.ProductID,
+		WarehouseID:   inventory.WarehouseID,
+		StockChange:   inventory.Stock,
+		Reason:        "Product created - Increase inventory",
+	}
+
+	logResultErr := r.p.DB.Create(&logInventory).Error
+	if logResultErr != nil {
+		dbErr["db_error"] = "database error"
+		return nil, dbErr
+	}
+
 
 	cacheRepo.SetKey(fmt.Sprintf("%v_INVENTORY", inventory.ProductID), inventory, time.Minute * 15)
 	
@@ -163,6 +177,20 @@ func (r *InventoryRepo) ReduceInventory(tx *gorm.DB, id int64, quantityOrdered i
 	result := tx.Model(&inventory).
 		Update("stock", gorm.Expr("stock - ?", quantityOrdered))
 	
+	logInventory := &inventory_entity.InventoryLog{
+		ProductID:     inventory.ProductID,
+		WarehouseID:   inventory.WarehouseID,
+		StockChange:   -int(quantityOrdered),
+		Reason:        "Product ordered - Reduce inventory",
+	}
+
+	logResultErr := tx.Create(&logInventory).Error
+	loggerRepo.Info("Inventory Logged", map[string]interface{}{"data": logInventory})
+	if logResultErr != nil {
+		loggerRepo.Error(loggerErr.Error(), map[string]interface{}{})
+		return logResultErr
+	}
+
 	if result.Error != nil {
 		return result.Error
 	}
@@ -196,3 +224,4 @@ func (r *InventoryRepo) IncreaseInventory(productId int64, quantityToAdd int64) 
 
     return nil
 }
+

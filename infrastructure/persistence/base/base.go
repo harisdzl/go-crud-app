@@ -80,7 +80,8 @@ func NewPersistence() (*Persistence, error) {
 //This migrate all tables
 func (s *Persistence) Automigrate() error {
 	return s.DB.AutoMigrate(&product_entity.Product{}, 
-		&inventory_entity.Inventory{}, 
+		&inventory_entity.Inventory{},
+		&inventory_entity.InventoryLog{}, 
 		&warehouse_entity.Warehouse{}, 
 		&image_entity.Image{},
 		&category_entity.Category{},

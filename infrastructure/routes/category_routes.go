@@ -9,10 +9,10 @@ import (
 func CategoryRoutes(router *gin.RouterGroup, p *base.Persistence) {
     categories := handlers.NewCategory(p)
        
-    router.POST("/categories", categories.SaveCategory)
-    router.GET("/categories/:category_id", categories.GetCategory)
-    router.GET("/categories/parents/:category_id", categories.GetParentCategories)
-    router.GET("/categories", categories.GetAllCategories)
-	router.PUT("/categories/:category_id", categories.UpdateCategory)
-    router.DELETE("/categories/:category_id", categories.DeleteCategory)
+    router.POST("admin/categories", categories.SaveCategory)
+    router.GET("admin/categories/:category_id", categories.GetCategory)
+    router.GET("admin/categories/parents/:category_id", categories.GetParentCategories)
+    router.GET("admin/categories", categories.GetAllCategories)
+	router.PUT("admin/categories/:category_id", categories.UpdateCategory)
+    router.DELETE("admin/categories/:category_id", categories.DeleteCategory)
 }

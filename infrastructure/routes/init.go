@@ -44,7 +44,7 @@ func InitRouter(p *base.Persistence) *gin.Engine {
 
     // Swagger documentation setup
     docs.SwaggerInfo.Title = "Quqo Challenge"
-    docs.SwaggerInfo.BasePath = "/"
+    docs.SwaggerInfo.BasePath = "/admin"
     docs.SwaggerInfo.Description = "Documentation - Quqo Challenge"
     docs.SwaggerInfo.Version = "1.0"
     docs.SwaggerInfo.Schemes = []string{"http", "https"}

@@ -10,13 +10,13 @@ func WarehouseRoutes(router *gin.RouterGroup, p *base.Persistence) {
     warehouses := handlers.NewWarehouse(p)
 
     
-    router.POST("/warehouses", warehouses.SaveWarehouse)
-    // router.POST("/warehouses/multiple", warehouses.SaveMultiplewarehouses)
-    router.GET("/warehouses", warehouses.GetAllWarehouses)
-    router.GET("/warehouses/:warehouse_id", warehouses.GetWarehouse)
-    router.GET("/warehouses/:warehouse_id/inventories", warehouses.GetInventoriesInWarehouse)
-    router.PUT("/warehouses/:warehouse_id", warehouses.UpdateWarehouse)
-    router.DELETE("/warehouses/:warehouse_id", warehouses.DeleteWarehouse)
-    router.GET("/warehouses/search", warehouses.SearchWarehouse)
-    router.POST("/warehouses/search", warehouses.UpdateWarehouseSearchDB)
+    router.POST("admin/warehouses", warehouses.SaveWarehouse)
+    // router.POST("admin/warehouses/multiple", warehouses.SaveMultiplewarehouses)
+    router.GET("admin/warehouses", warehouses.GetAllWarehouses)
+    router.GET("admin/warehouses/:warehouse_id", warehouses.GetWarehouse)
+    router.GET("admin/warehouses/:warehouse_id/inventories", warehouses.GetInventoriesInWarehouse)
+    router.PUT("admin/warehouses/:warehouse_id", warehouses.UpdateWarehouse)
+    router.DELETE("admin/warehouses/:warehouse_id", warehouses.DeleteWarehouse)
+    router.GET("admin/warehouses/search", warehouses.SearchWarehouse)
+    router.POST("admin/warehouses/search", warehouses.UpdateWarehouseSearchDB)
 }
