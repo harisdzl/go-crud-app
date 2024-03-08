@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/warehouse_entity"
@@ -63,19 +64,24 @@ func (a *warehouseApp) SearchWarehouse(name string) ([]warehouse_entity.Warehous
 	err := searchRepo.SearchDocByName(name, indexName, &results)
 
 	for _, result := range results {
-		product, productErr := warehouseRepo.GetWarehouse(result["id"].(int64))
-		if productErr != nil {
-			return nil, productErr
+		warehouseId, warehouseIdErr := strconv.ParseInt(result["id"].(string), 10, 64)
+
+		if warehouseIdErr != nil {
+			return nil, warehouseIdErr
+		}
+		warehouse, warehouseErr := warehouseRepo.GetWarehouse(warehouseId)
+		if warehouseErr != nil {
+			return nil, warehouseIdErr
 		}
 
-		searchProducts = append(searchProducts, *product)
+		searchProducts = append(searchProducts, *warehouse)
 	}
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	if len(results) == 0 {
-		fmt.Println("No such product of name: " + name)
+		fmt.Println("No such warehouse of name: " + name)
 	}
 	
 	return searchProducts, nil
@@ -96,8 +102,9 @@ func (a *warehouseApp) UpdateWarehousesInSearchDB() (error) {
 	var allWarehouses []interface{}
 
     for _, p := range warehouses {
+		warehouseId := fmt.Sprint(p.ID)
 		searchWarehouse := map[string]interface{}{
-			"id" : p.ID,
+			"id" : warehouseId,
 			"name" : p.Name,
 		}
 
@@ -112,7 +119,7 @@ func (a *warehouseApp) UpdateWarehousesInSearchDB() (error) {
 	}
 
 	if searchInsertAll != nil {
-		return errors.New("Fail to update mongo db with all warehouses")
+		return errors.New("Fail to update search db with all warehouses")
 	}
 
 	return nil

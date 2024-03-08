@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/inventory_entity"
@@ -103,7 +104,14 @@ func (a *productApp) SearchProduct(name string) ([]product_entity.Product, error
 	err := repoSearch.SearchDocByName(name, indexName, &results)
 
 	for _, result := range results {
-		product, productErr := repoProduct.GetProduct(result["id"].(int64))
+		productId, productIdErr := strconv.ParseInt(result["id"].(string), 10, 64)
+
+		if productIdErr != nil {
+			loggerRepo.Error("Error in converting product id", map[string]interface{}{"data": result})
+			return nil, productIdErr
+		}
+
+		product, productErr := repoProduct.GetProduct(productId)
 		if productErr != nil {
 			return nil, productErr
 		}
@@ -136,8 +144,9 @@ func (a *productApp) UpdateProductsInSearchDB() (error) {
 	var allProducts []interface{}
 
     for _, p := range products {
+		idString := fmt.Sprint(p.ID)
 		searchProduct := map[string]interface{}{
-			"id" : p.ID,
+			"id" : idString,
 			"name" : p.Name,
 			"description" : p.Description,
 			"category" : p.Category.Name,
@@ -155,7 +164,7 @@ func (a *productApp) UpdateProductsInSearchDB() (error) {
 	}
 
 	if searchInsertAll != nil {
-		return errors.New("Fail to update mongo db with all warehouses")
+		return errors.New("Fail to update search db with all products")
 	}
 
 	return nil
