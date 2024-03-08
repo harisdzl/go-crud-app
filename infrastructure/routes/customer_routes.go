@@ -9,15 +9,15 @@ import (
 func CustomerPrivateRoutes(router *gin.RouterGroup, p *base.Persistence) {
     customers := handlers.NewCustomer(p)
     
-    router.GET("/customers", customers.GetAllCustomers)
-    router.GET("/customers/:customer_id", customers.GetCustomer)
-    router.PUT("/customers/:customer_id", customers.UpdateCustomer)
-    router.DELETE("/customers/:customer_id", customers.DeleteCustomer)
+    router.GET("admin/customers", customers.GetAllCustomers)
+    router.GET("admin/customers/:customer_id", customers.GetCustomer)
+    router.PUT("admin/customers/:customer_id", customers.UpdateCustomer)
+    router.DELETE("admin/customers/:customer_id", customers.DeleteCustomer)
 }
 
 
 func CustomerPublicRoutes(router *gin.RouterGroup, p *base.Persistence) {
     customers := handlers.NewCustomer(p)
     
-    router.POST("/customers", customers.SaveCustomer)
+    router.POST("admin/customers", customers.SaveCustomer)
 }

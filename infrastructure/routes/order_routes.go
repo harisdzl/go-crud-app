@@ -9,9 +9,9 @@ import (
 func OrderRoutes(router *gin.RouterGroup, p *base.Persistence) {
     orders := handlers.NewOrder(p)
     
-    router.POST("/orders", orders.SaveOrder)
-    router.GET("/orders", orders.GetAllOrders)
-    router.GET("/orders/:order_id", orders.GetOrder)
-    router.PUT("/orders/:order_id", orders.UpdateOrder)
-    router.DELETE("/orders/:order_id", orders.DeleteOrder)
+    router.POST("admin/orders", orders.SaveOrder)
+    router.GET("admin/orders", orders.GetAllOrders)
+    router.GET("admin/orders/:order_id", orders.GetOrder)
+    router.PUT("admin/orders/:order_id", orders.UpdateOrder)
+    router.DELETE("admin/orders/:order_id", orders.DeleteOrder)
 }

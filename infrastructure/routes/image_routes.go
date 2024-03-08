@@ -9,8 +9,8 @@ import (
 func ImageRoutes(router *gin.RouterGroup, p *base.Persistence) {
     images := handlers.NewImage(p)
        
-    router.POST("/images", images.SaveImage)
-    router.GET("/images/:image_id", images.GetImage)
-    router.GET("/images/products/:product_id", images.GetAllImagesOfProduct)
-    router.DELETE("/images/:image_id", images.DeleteImage)
+    router.POST("admin/images", images.SaveImage)
+    router.GET("admin/images/:image_id", images.GetImage)
+    router.GET("admin/images/products/:product_id", images.GetAllImagesOfProduct)
+    router.DELETE("admin/images/:image_id", images.DeleteImage)
 }

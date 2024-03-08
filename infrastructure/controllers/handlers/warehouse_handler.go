@@ -17,7 +17,7 @@ import (
 
 
 type Warehouse struct {
-	WarehouseRepo warehouse_repository.WarehouseRepository
+	WarehouseRepo warehouse_repository.WarehouseHandlerRepository
 	Persistence *base.Persistence
 }
 
@@ -293,7 +293,7 @@ func (pr *Warehouse) UpdateWarehouseSearchDB(c *gin.Context) {
     updateErr := pr.WarehouseRepo.UpdateWarehousesInSearchDB()
 
     if updateErr != nil {
-        fmt.Println("fail to update Warehouses in mongodb")
+        fmt.Println("fail to update Warehouses in Search DB")
         c.JSON(http.StatusInternalServerError, responseContextData.ResponseData(entity.StatusFail, "Internal Server error", ""))
         return
     }

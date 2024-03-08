@@ -3,7 +3,6 @@ package products
 import (
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -196,52 +195,4 @@ func (r *ProductRepo) DeleteProduct(id int64) error {
 	}
 
 	return nil
-}
-
-
-
-func (r *ProductRepo) UpdateProductsInSearchDB() error {
-    channels := []string{"Zap", "Honeycomb"}
-    loggerRepo, loggerErr := logger.NewLoggerRepository(channels, r.p, r.c, "implementations/GetProduct")
-
-    if loggerErr != nil {
-        return loggerErr
-    }
-	defer loggerRepo.End()    
-
-    searchRepo := search.NewSearchRepository("Mongo", r.p, r.c)
-    collectionName := "products"
-
-    products, err := r.GetAllProducts()
-    if err != nil {
-        fmt.Println(err)
-        return nil
-    }
-
-    // Serialize products with only required fields
-    var allProducts []interface{}
-
-    for _, p := range products {
-		searchProduct := map[string]interface{}{
-			"id" : p.ID,
-			"name" : p.Name,
-			"description" : p.Description,
-			"category" : p.Category.Name,
-		}
-
-        allProducts = append(allProducts, searchProduct)
-    }
-
-    searchDeleteAllErr := searchRepo.DeleteAllDoc(collectionName, allProducts)
-    searchInsertAll := searchRepo.InsertAllDoc(collectionName, allProducts)
-    if searchDeleteAllErr != nil {
-        return errors.New("Fail to delete all docs")
-    }
-
-    if searchInsertAll != nil {
-        log.Println(searchInsertAll)
-        return errors.New("Fail to update search db with all products")
-    }
-
-    return nil
 }

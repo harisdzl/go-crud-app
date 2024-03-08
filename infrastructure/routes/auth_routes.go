@@ -9,11 +9,11 @@ import (
 func AuthRoutesPublic(router *gin.RouterGroup, p *base.Persistence) {
     auth := handlers.NewAuth(p)
 	
-	router.POST("/login", auth.Login)
+	router.POST("admin/login", auth.Login)
 }
 
 func AuthRoutesPrivate(router *gin.RouterGroup, p *base.Persistence) {
     auth := handlers.NewAuth(p)
 	
-	router.POST("/logout", auth.Logout)
+	router.POST("admin/logout", auth.Logout)
 }

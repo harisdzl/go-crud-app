@@ -1,8 +1,10 @@
 package application
 
 import (
+	"errors"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/inventory_entity"
@@ -88,9 +90,9 @@ func (a *productApp) SearchProduct(name string) ([]product_entity.Product, error
 	loggerRepo.SetContextWithSpan()
 	defer loggerRepo.End()
 
+	searchProvider := os.Getenv("SEARCH_PROVIDER")
 
-
-	repoSearch := search.NewSearchRepository("Mongo", a.p, a.c)
+	repoSearch := search.NewSearchRepository(searchProvider, a.p, a.c)
 
 	repoProduct := products.NewProductRepository(a.p, a.c)
 
@@ -120,8 +122,43 @@ func (a *productApp) SearchProduct(name string) ([]product_entity.Product, error
 }
 
 func (a *productApp) UpdateProductsInSearchDB() (error) {
-	repoProduct := products.NewProductRepository(a.p, a.c)
-	return repoProduct.UpdateProductsInSearchDB()
+	searchProvider := os.Getenv("SEARCH_PROVIDER")
+	searchRepo := search.NewSearchRepository(searchProvider, a.p, a.c)
+	collectionName := "products"
+
+	products, err := a.GetAllProducts()
+	
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	var allProducts []interface{}
+
+    for _, p := range products {
+		searchProduct := map[string]interface{}{
+			"id" : p.ID,
+			"name" : p.Name,
+			"description" : p.Description,
+			"category" : p.Category.Name,
+		}
+
+        allProducts = append(allProducts, searchProduct)
+    }
+
+
+	searchDeleteAllErr := searchRepo.DeleteAllDoc(collectionName, allProducts)
+	searchInsertAll := searchRepo.InsertAllDoc(collectionName, allProducts)
+
+	if searchDeleteAllErr != nil {
+		return errors.New("Fail to delete all docs")
+	}
+
+	if searchInsertAll != nil {
+		return errors.New("Fail to update mongo db with all warehouses")
+	}
+
+	return nil
 }
 
 
