@@ -82,6 +82,8 @@ func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_enti
 	order.TotalCost = totalCost
 	totalCheckout := totalCost + order.TotalFees
 	order.TotalCheckout = totalCheckout
+	
+	a.p.Logger.Info("application/CalculateTotalCost", map[string]interface{}{"total_cost": totalCost})
 
 	// Save the order
 	repoOrder := orders.NewOrderRepository(a.p, a.c)
@@ -125,7 +127,6 @@ func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_enti
 			return nil, errTx
 		}
 	}
-	a.p.Logger.Info("application/SaveOrderFromRaw", map[string]interface{}{"savedOrder": savedOrder})
 	
 	return savedOrder, nil
 }

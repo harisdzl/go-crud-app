@@ -6,6 +6,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"runtime"
 
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel"
@@ -27,6 +28,8 @@ func NewHoneycombRepository() *HoneycombRepo {
 
 // Start Honeycomb
 func (h *HoneycombRepo) Start(c *gin.Context, info string) trace.Span {
+    h.c = c
+    _, file, line, _ := runtime.Caller(2)
     // Retrieve otel_context from Gin context if it exists
     ctxValue, exists := c.Get("otel_context")
     // Implement info logging with Honeycomb using the retrieved context
@@ -39,10 +42,12 @@ func (h *HoneycombRepo) Start(c *gin.Context, info string) trace.Span {
         ctx = c.Request.Context()
     }
     tracer := otel.Tracer("")
-    _, span := tracer.Start(ctx, info)    
-
+    _, span := tracer.Start(ctx, info, trace.WithAttributes(
+        attribute.String("file", file),
+        attribute.String("client_ip", h.c.ClientIP()),
+        attribute.Int("line", line),
+    ))
     h.span = span
-    h.c = c
 
     return span
 }
@@ -50,6 +55,7 @@ func (h *HoneycombRepo) Start(c *gin.Context, info string) trace.Span {
 // Debug logs a debug message
 func (h *HoneycombRepo) Debug(msg string, fields map[string]interface{}) {
 	jsonData, jsonDataErr := json.Marshal(fields)
+    _, file, line, _ := runtime.Caller(2)
 
 	if jsonDataErr != nil {
 		return
@@ -57,14 +63,17 @@ func (h *HoneycombRepo) Debug(msg string, fields map[string]interface{}) {
 
 	h.span.AddEvent(msg, trace.WithAttributes(
 		attribute.String("level", "Debug"),
-		attribute.String("data", string(jsonData))))
+		attribute.String("data", string(jsonData)),
+        attribute.String("file", file),
+        attribute.String("client_ip", h.c.ClientIP()),
+        attribute.Int("line", line)))
 	
 }
 
 // Info logs an info message
 func (h *HoneycombRepo) Info(msg string, fields map[string]interface{}) {
-
 	jsonData, jsonDataErr := json.Marshal(fields)
+    _, file, line, _ := runtime.Caller(2)
 
 	if jsonDataErr != nil {
         log.Println("jsonData marshal error")
@@ -73,19 +82,25 @@ func (h *HoneycombRepo) Info(msg string, fields map[string]interface{}) {
     
 	h.span.AddEvent(msg, trace.WithAttributes(
 		attribute.String("level", "Info"),
-		attribute.String("data", string(jsonData))))
-	
+		attribute.String("data", string(jsonData)),
+        attribute.String("file", file),
+        attribute.String("client_ip", h.c.ClientIP()),
+        attribute.Int("line", line)))
 }
 
 func (h *HoneycombRepo) Error(msg string, fields map[string]interface{}) {
     jsonData, jsonDataErr := json.Marshal(fields)
+    _, file, line, _ := runtime.Caller(2)
     if jsonDataErr != nil {
         return
     }
 
     h.span.RecordError(errors.New(msg), trace.WithAttributes(
 		attribute.String("level", "Error"),
-        attribute.String("data", string(jsonData))))
+        attribute.String("data", string(jsonData)),
+        attribute.String("file", file),
+        attribute.String("client_ip", h.c.ClientIP()),
+        attribute.Int("line", line)))
 }
 
 
@@ -93,21 +108,25 @@ func (h *HoneycombRepo) Error(msg string, fields map[string]interface{}) {
 func (h *HoneycombRepo) Warn(msg string, fields map[string]interface{}) {
     // Implement warn logging with Honeycomb
     // This function can be implemented similar to the Info function
-
     jsonData, jsonDataErr := json.Marshal(fields)
+    _, file, line, _ := runtime.Caller(2)
     if jsonDataErr != nil {
         return
     }
 
     h.span.AddEvent(msg, trace.WithAttributes(
 		attribute.String("level", "Warn"),
-        attribute.String("data", string(jsonData))))
+        attribute.String("data", string(jsonData)),
+        attribute.String("file", file),
+        attribute.String("client_ip", h.c.ClientIP()),
+        attribute.Int("line", line)))
 }
 
 // Fatal logs a fatal message
 func (h *HoneycombRepo) Fatal(msg string, fields map[string]interface{}) {
     // Implement fatal logging with Honeycomb
     // This function can be implemented similar to the Info function
+    _, file, line, _ := runtime.Caller(2)
 
     jsonData, jsonDataErr := json.Marshal(fields)
     if jsonDataErr != nil {
@@ -116,7 +135,10 @@ func (h *HoneycombRepo) Fatal(msg string, fields map[string]interface{}) {
 
     h.span.AddEvent(msg, trace.WithAttributes(
 		attribute.String("level", "Fatal"),
-        attribute.String("data", string(jsonData))))
+        attribute.String("data", string(jsonData)),
+        attribute.String("file", file),
+        attribute.String("client_ip", h.c.ClientIP()),
+        attribute.Int("line", line)))
 
 	os.Exit(1)
 }
