@@ -8,6 +8,7 @@ ERD: https://drive.google.com/file/d/1KQ48G-8WMyVjEezBc1ACC49GUlzQmYqm/view?usp=
 
 1. Initialise NewLoggerRepository and store inside Persistence
 
+```
 func NewPersistence() (\*Persistence, error) {
 
     // Initialise others
@@ -19,8 +20,12 @@ func NewPersistence() (\*Persistence, error) {
         // Other databases and engines
         Logger:             logger,
     }
+}
+```
 
-} 2. Then, call it from the Persistence as r.p.Logger
+2. Then, call it from the Persistence as r.p.Logger
+
+```
 func (r orderRepo) GetOrder(id uint64) (\*entity.Order, error) {
 
     span := r.p.Logger.Start(r.c, "infrastructure/implementations/GetOrder", map[string]interface{}{"id": id})
@@ -41,8 +46,8 @@ func (r orderRepo) GetOrder(id uint64) (\*entity.Order, error) {
     }
 
     return order, nil
-
 }
+```
 
 ### Explain Trace
 
