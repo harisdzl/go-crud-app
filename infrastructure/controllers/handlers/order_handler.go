@@ -63,8 +63,6 @@ func (or Order) SaveOrder(c *gin.Context) {
 		return
 	}
 
-
-
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "Order saved successfully", &savedOrder))
 }
 
