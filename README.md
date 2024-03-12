@@ -20,7 +20,7 @@ func NewPersistence() (\*Persistence, error) {
         Logger:             logger,
     }
 
-} 2. Then, call it from the Persistence as r.p.Logger
+2. Then, call it from the Persistence as r.p.Logger
 func (r orderRepo) GetOrder(id uint64) (\*entity.Order, error) {
 
     span := r.p.Logger.Start(r.c, "infrastructure/implementations/GetOrder", map[string]interface{}{"id": id})
