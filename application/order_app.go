@@ -10,7 +10,6 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/ordereditem_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/order_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/inventories"
-	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/ordereditems"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/orders"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/products"
@@ -27,15 +26,10 @@ func NewOrderApplication(p *base.Persistence, c *gin.Context) order_repository.O
 }
 
 func (a *OrderApp) CalculateTotalCost(rawOrder order_entity.RawOrder) float64 {
+	span := a.p.Logger.Start(a.c, "application/CalculateTotalCost")
+	defer span.End()
 	var totalCost float64
 
-	channels := []string{"Zap", "Honeycomb"}
-	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, a.c, "application/CalculateTotalCost")
-	if loggerErr != nil {
-		loggerRepo.Error("Failed to initialize logger", map[string]interface{}{})
-	}
-
-	defer loggerRepo.End()
 	for productID, quantity := range rawOrder.Products {
 		id, _ := strconv.ParseInt(productID, 10, 64)
 		product, err := products.NewProductRepository(a.p, a.c).GetProduct(id); if err != nil {
@@ -43,26 +37,18 @@ func (a *OrderApp) CalculateTotalCost(rawOrder order_entity.RawOrder) float64 {
 		}
 
 		totalCost += (product.Price * float64(quantity))
-	}
+	}	
 
-	loggerRepo.Info("Total cost calculated", map[string]interface{}{"data": totalCost})
-	
+	a.p.Logger.Info("application/CalculateTotalCost", map[string]interface{}{"total_cost": totalCost})
 	return totalCost
 }
 
 
 func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_entity.Order, error) {
 	// Start a new span for the SaveOrderFromRaw function
+	span := a.p.Logger.Start(a.c, "application/SaveOrderFromRaw", a.p.Logger.SetContextWithSpanFunc())
+	defer span.End()
 	var errTx error
-	channels := []string{"Zap", "Honeycomb"}
-	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, a.c, "application/SaveOrderFromRaw")
-	if loggerErr != nil {
-		return nil, loggerErr
-	}
-
-	loggerRepo.SetContextWithSpan()
-	defer loggerRepo.End()
-
 	tx := a.p.DB.Begin()
 	if tx.Error != nil {
 		return nil, errors.New("failed to start transaction")
@@ -139,23 +125,15 @@ func (a *OrderApp) SaveOrderFromRaw(rawOrder order_entity.RawOrder) (*order_enti
 			return nil, errTx
 		}
 	}
-
-	loggerRepo.Info("Saved order from raw format", map[string]interface{}{"data": savedOrder})
+	a.p.Logger.Info("application/SaveOrderFromRaw", map[string]interface{}{"savedOrder": savedOrder})
 	
 	return savedOrder, nil
 }
 
 
 func (a *OrderApp) GetOrder(OrderId int64) (*order_entity.Order, error) {
-	channels := []string{"Zap", "Honeycomb"}
-	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, a.c, "application/GetOrder")
-	if loggerErr != nil {
-		return nil, loggerErr
-	}
-	loggerRepo.SetContextWithSpan()
-	defer loggerRepo.End()
-
-
+	span := a.p.Logger.Start(a.c, "application/GetOrder", a.p.Logger.SetContextWithSpanFunc())
+	defer span.End()
 	repoOrder := orders.NewOrderRepository(a.p, a.c)
 	return repoOrder.GetOrder(OrderId)
 }
@@ -166,16 +144,8 @@ func (a *OrderApp) GetAllOrders() ([]order_entity.Order, error) {
 }
 	
 func (a *OrderApp) UpdateOrder(Order *order_entity.Order) (*order_entity.Order, error) {
-	channels := []string{"Zap", "Honeycomb"}
-	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, a.c, "application/UpdateOrder")
-	if loggerErr != nil {
-		return nil, loggerErr
-	}
-	loggerRepo.SetContextWithSpan()
-	defer loggerRepo.End()
-
-
-
+	span := a.p.Logger.Start(a.c, "application/UpdateOrder", a.p.Logger.SetContextWithSpanFunc())
+	defer span.End()
 	repoOrder := orders.NewOrderRepository(a.p, a.c)
 	return repoOrder.UpdateOrder(Order)
 }

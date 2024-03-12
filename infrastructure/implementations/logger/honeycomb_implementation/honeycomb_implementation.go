@@ -8,7 +8,6 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -16,12 +15,18 @@ import (
 
 // HoneycombRepo is the Honeycomb logger implementation
 type HoneycombRepo struct {
-	p *base.Persistence
-	c *gin.Context
+    c *gin.Context
 	span trace.Span
 }
 
-func NewHoneycombRepository(p *base.Persistence, c *gin.Context, info string) *HoneycombRepo {
+
+
+func NewHoneycombRepository() *HoneycombRepo {
+    return &HoneycombRepo{nil, nil}
+}
+
+// Start Honeycomb
+func (h *HoneycombRepo) Start(c *gin.Context, info string) trace.Span {
     // Retrieve otel_context from Gin context if it exists
     ctxValue, exists := c.Get("otel_context")
     // Implement info logging with Honeycomb using the retrieved context
@@ -34,13 +39,12 @@ func NewHoneycombRepository(p *base.Persistence, c *gin.Context, info string) *H
         ctx = c.Request.Context()
     }
     tracer := otel.Tracer("")
-    _, span := tracer.Start(ctx, info)
-    
-    // Log information about the span
-    log.Println("Trace ID: ", span.SpanContext().TraceID().String())
-    log.Println("Span created: ", span.SpanContext().SpanID().String())
+    _, span := tracer.Start(ctx, info)    
 
-    return &HoneycombRepo{p, c, span}
+    h.span = span
+    h.c = c
+
+    return span
 }
 
 // Debug logs a debug message
@@ -63,9 +67,10 @@ func (h *HoneycombRepo) Info(msg string, fields map[string]interface{}) {
 	jsonData, jsonDataErr := json.Marshal(fields)
 
 	if jsonDataErr != nil {
+        log.Println("jsonData marshal error")
 		return
 	}
-
+    
 	h.span.AddEvent(msg, trace.WithAttributes(
 		attribute.String("level", "Info"),
 		attribute.String("data", string(jsonData))))
@@ -118,4 +123,8 @@ func (h *HoneycombRepo) Fatal(msg string, fields map[string]interface{}) {
 
 func (h *HoneycombRepo) GetSpan() trace.Span {
     return h.span
+}
+
+func (h *HoneycombRepo) GetContext() *gin.Context {
+    return h.c
 }

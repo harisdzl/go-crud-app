@@ -1,21 +1,14 @@
 package db
 
 import (
-	"github.com/harisquqo/quqo-challenge-1/domain/entity/logger_entity"
-	"go.uber.org/zap"
+	"os"
+
+	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger"
 )
-func NewLogger() (*logger_entity.Logger, error) {
-	var logger *logger_entity.Logger
+func NewLogger() (logger.LoggerRepo, error) {
 
-	// Initialize Zap
-	zapLogger, _ := zap.NewProduction()
-	defer zapLogger.Sync()
-
-	logger = &logger_entity.Logger{
-		Zap: zapLogger,
-	}
-
-	
+	logChannels := []string{os.Getenv("LOG_CHANNEL_ZAP"), os.Getenv("LOG_CHANNEL_HONEYCOMB")}
+	logger := logger.NewLoggerRepository(logChannels)
 
 	return logger, nil
 }

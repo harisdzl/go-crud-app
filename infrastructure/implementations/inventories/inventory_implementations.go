@@ -9,7 +9,6 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/inventory_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/inventory_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/cache"
-	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 	"gorm.io/gorm"
 )
@@ -134,15 +133,8 @@ func (r *InventoryRepo) DeleteInventory(id int64) error {
 }
 
 func (r *InventoryRepo) ReduceInventory(tx *gorm.DB, id int64, quantityOrdered int64) error {
-	channels := []string{"Zap", "Honeycomb"}
-	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, r.p, r.c, "implementations/ReduceInventory")
-
-	if loggerErr != nil {
-		return loggerErr
-	}
-
-	defer loggerRepo.End()
-	
+	span := r.p.Logger.Start(r.c, "implementations/ReduceInventory")
+	defer span.End()
 	inventory, invErr := r.GetInventory(id)
 	if invErr != nil {
 		return invErr
@@ -172,6 +164,7 @@ func (r *InventoryRepo) ReduceInventory(tx *gorm.DB, id int64, quantityOrdered i
 	}
 
 	if inventory.Stock < int(quantityOrdered) {
+		r.p.Logger.Error("implementations/ReduceInventory", map[string]interface{}{"error": fmt.Sprintf("not enough stock. Maximum quantity is %v", inventory.Stock)})
 		return fmt.Errorf("not enough stock. Maximum quantity is %v", inventory.Stock)
 	}
 	result := tx.Model(&inventory).
@@ -185,9 +178,7 @@ func (r *InventoryRepo) ReduceInventory(tx *gorm.DB, id int64, quantityOrdered i
 	}
 
 	logResultErr := tx.Create(&logInventory).Error
-	loggerRepo.Info("Inventory Logged", map[string]interface{}{"data": logInventory})
 	if logResultErr != nil {
-		loggerRepo.Error(loggerErr.Error(), map[string]interface{}{})
 		return logResultErr
 	}
 
@@ -204,7 +195,8 @@ func (r *InventoryRepo) ReduceInventory(tx *gorm.DB, id int64, quantityOrdered i
 	if result.RowsAffected < 0 {
 		return errors.New("not enough stock")
 	}
-	loggerRepo.Info("Inventory decreased", map[string]interface{}{"data": inventory})
+
+	r.p.Logger.Info("implementations/ReduceInventory", map[string]interface{}{"json_data": logInventory})
 
 	return nil
 }

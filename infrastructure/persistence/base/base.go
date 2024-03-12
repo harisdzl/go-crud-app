@@ -7,11 +7,11 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/customer_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/image_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/inventory_entity"
-	"github.com/harisquqo/quqo-challenge-1/domain/entity/logger_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/order_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/ordereditem_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/product_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/warehouse_entity"
+	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base/db"
 	"github.com/opensearch-project/opensearch-go"
 	"github.com/redis/go-redis/v9"
@@ -27,7 +27,7 @@ type Persistence struct {
 	DbMongo *mongo.Client
 	DbOpensearch *opensearch.Client
 	DbSupabase *storage_go.Client
-	Logger *logger_entity.Logger
+	Logger logger.LoggerRepo
 }
 
 // Function to create a new repository
@@ -38,7 +38,6 @@ func NewPersistence() (*Persistence, error) {
 	opensearchDb, errOpensearchDb := db.NewOpenSearchDB()
 	supabaseDb, errSupabaseDb := db.NewSupabaseDB()
 	logger, errLogger := db.NewLogger()
-
 	if errDatabase != nil {
 		log.Fatal(errDatabase)
 	}

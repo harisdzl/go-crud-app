@@ -12,7 +12,6 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/product_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/product_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/inventories"
-	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/products"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/search"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
@@ -68,6 +67,8 @@ func (a *productApp) GetProduct(productId int64) (*product_entity.Product, error
 }
 
 func (a *productApp) GetAllProducts() ([]product_entity.Product, error) {
+	span := a.p.Logger.Start(a.c, "application/GetAllProducts", a.p.Logger.SetContextWithSpanFunc())
+	defer span.End()
 	repoProduct := products.NewProductRepository(a.p, a.c)
 	return repoProduct.GetAllProducts()
 }
@@ -83,14 +84,6 @@ func (a *productApp) DeleteProduct(productId int64) error {
 }
 
 func (a *productApp) SearchProduct(name string) ([]product_entity.Product, error) {
-	channels := []string{"Zap", "Honeycomb"}
-	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, a.p, a.c, "application/SearchProduct")
-	if loggerErr != nil {
-		return nil, loggerErr
-	}
-	loggerRepo.SetContextWithSpan()
-	defer loggerRepo.End()
-
 	searchProvider := os.Getenv("SEARCH_PROVIDER")
 
 	repoSearch := search.NewSearchRepository(searchProvider, a.p, a.c)
@@ -107,7 +100,6 @@ func (a *productApp) SearchProduct(name string) ([]product_entity.Product, error
 		productId, productIdErr := strconv.ParseInt(result["id"].(string), 10, 64)
 
 		if productIdErr != nil {
-			loggerRepo.Error("Error in converting product id", map[string]interface{}{"data": result})
 			return nil, productIdErr
 		}
 

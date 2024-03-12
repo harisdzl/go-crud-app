@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/ordereditem_entity"
-	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 	"gorm.io/gorm"
 )
@@ -22,14 +21,8 @@ func NewOrderedItemsRepository(p *base.Persistence, c *gin.Context) *OrderedItem
 
 
 func (o *OrderedItemsRepo) SaveOrderedItem(tx *gorm.DB, orderedItem *ordereditem_entity.OrderedItem) (*ordereditem_entity.OrderedItem, error) {
-	channels := []string{"Zap", "Honeycomb"}
-	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, o.p, o.c, "implementations/SaveOrderedItem")
-	defer loggerRepo.End()
-	
-	if loggerErr != nil {
-		return nil, loggerErr
-	}
-
+	span := o.p.Logger.Start(o.c, "implementations/SaveOrderedItem")
+	defer span.End()
 	if tx == nil {
 		var errTx error
 		tx := o.p.DB.Begin()
@@ -57,11 +50,11 @@ func (o *OrderedItemsRepo) SaveOrderedItem(tx *gorm.DB, orderedItem *ordereditem
 		// tracer.Span.RecordError(err)
 		fmt.Println("Failed to create orderedItem")
 		fmt.Println(err)
-		loggerRepo.Error(err.Error(), map[string]interface{}{})
 		return nil, err
 	}
 
-	loggerRepo.Info("Ordered Item Saved", map[string]interface{}{"data": orderedItem})	
+	o.p.Logger.Info("implementations/SaveOrderedItem", map[string]interface{}{"json_data": orderedItem})
+
 	return orderedItem, nil
 }
 
