@@ -9,7 +9,6 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/order_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/order_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/cache"
-	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 	"gorm.io/gorm"
 )
@@ -26,15 +25,8 @@ func NewOrderRepository(p *base.Persistence, c *gin.Context) *OrderRepo {
 var _ order_repository.OrderRepository = &OrderRepo{}
 
 func (o *OrderRepo) SaveOrder(tx *gorm.DB, order *order_entity.Order) (*order_entity.Order, error) {
-	channels := []string{"Zap", "Honeycomb"}
-	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, o.p, o.c, "implementations/SaveOrder")
-	
-	defer loggerRepo.End()
-	
-	if loggerErr != nil {
-		return nil, loggerErr
-	}
-
+	span := o.p.Logger.Start(o.c, "implementations/SaveOrder")
+	defer span.End()
 	if tx == nil {
 		var errTx error
 		tx := o.p.DB.Begin()
@@ -63,22 +55,15 @@ func (o *OrderRepo) SaveOrder(tx *gorm.DB, order *order_entity.Order) (*order_en
 		fmt.Println(err)
 		return nil, err
 	}
-	loggerRepo.Info("New order created", map[string]interface{}{"data": order})
-	// tracerRepo.AddEvent(tracer, order)
+	
+	o.p.Logger.Info("implementations/SaveOrder", map[string]interface{}{"order": order})
 	return order, nil
 }
 
 
 func (o *OrderRepo) GetOrder(id int64) (*order_entity.Order, error) {
-	channels := []string{"Zap", "Honeycomb"}
-	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, o.p, o.c, "implementations/GetOrder")
-	
-	defer loggerRepo.End()
-
-	if loggerErr != nil {
-		return nil, loggerErr
-	}
-
+	span := o.p.Logger.Start(o.c, "implementations/GetOrder")
+	defer span.End()
 	var order *order_entity.Order
 	cacheRepo := cache.NewCacheRepository("Redis", o.p)
 	_ = cacheRepo.GetKey(fmt.Sprintf("%v_ORDER", id), &order)
@@ -111,15 +96,8 @@ func (o *OrderRepo) GetAllOrders() ([]order_entity.Order, error) {
 }
 
 func (o *OrderRepo) UpdateOrder(order *order_entity.Order) (*order_entity.Order, error) {
-	channels := []string{"Zap", "Honeycomb"}
-	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, o.p, o.c, "implementations/UpdateOrder")
-	
-	defer loggerRepo.End()
-
-	if loggerErr != nil {
-		return nil, loggerErr
-	}
-
+	span := o.p.Logger.Start(o.c, "implementations/UpdateOrder")
+	defer span.End()
 	cacheRepo := cache.NewCacheRepository("Redis", o.p)
 
 

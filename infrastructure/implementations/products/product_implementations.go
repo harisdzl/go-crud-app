@@ -9,7 +9,6 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/product_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/product_repository"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/cache"
-	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/search"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 	"gorm.io/gorm"
@@ -94,13 +93,8 @@ func (r *ProductRepo) SaveProduct(product *product_entity.Product) (*product_ent
 // }
 
 func (r *ProductRepo) GetProduct(id int64) (*product_entity.Product, error) {
-    channels := []string{"Zap", "Honeycomb"}
-    loggerRepo, loggerErr := logger.NewLoggerRepository(channels, r.p, r.c, "implementations/GetProduct")
-
-    if loggerErr != nil {
-        return nil, loggerErr
-    }
-	defer loggerRepo.End()    
+	span := r.p.Logger.Start(r.c, "implementations/GetProduct")
+	defer span.End()
     var product *product_entity.Product
 
     cacheRepo := cache.NewCacheRepository("Redis", r.p)
@@ -120,13 +114,15 @@ func (r *ProductRepo) GetProduct(id int64) (*product_entity.Product, error) {
         }
     }
 
-    loggerRepo.Info("Product retrieved", map[string]interface{}{"data": product})
+	r.p.Logger.Info("implementations/GetProduct", map[string]interface{}{"json_data": product})
 
     return product, nil
 }
 
 
 func (r *ProductRepo) GetAllProducts() ([]product_entity.Product, error) {
+	span := r.p.Logger.Start(r.c, "implementations/GetAllProducts")
+	defer span.End()
 	var products []product_entity.Product
 	err := r.p.DB.Debug().
 	Preload("Category").

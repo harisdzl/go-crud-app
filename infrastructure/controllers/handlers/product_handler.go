@@ -12,7 +12,6 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/inventory_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/entity/product_entity"
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/product_repository"
-	"github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger"
 	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 )
 
@@ -111,8 +110,9 @@ func (pr *Product) SaveProduct(c *gin.Context) {
 //	@Router			/products [get]
 func (pr *Product) GetAllProducts(c *gin.Context) {
 	responseContextData := entity.ResponseContext{Ctx: c}
+	span := pr.Persistence.Logger.Start(c, "handlers/GetAllProducts", pr.Persistence.Logger.SetContextWithSpanFunc())
+	defer span.End()
 	
-
 	pr.productRepo = application.NewProductApplication(pr.Persistence, c)
 
 	allProduct, err := pr.productRepo.GetAllProducts()
@@ -123,6 +123,8 @@ func (pr *Product) GetAllProducts(c *gin.Context) {
 	results := map[string]interface{}{
 		"results" : allProduct,
 	}
+	pr.Persistence.Logger.Info("Info hanlders/GetAllProducts", results)
+
 	c.JSON(http.StatusOK, responseContextData.ResponseData(entity.StatusSuccess, "All products obtained", results))
 }
 
@@ -253,16 +255,7 @@ func (pr *Product) UpdateProduct(c *gin.Context) {
 //	@Failure		500		{object}	entity.ResponseContext	"Internal server error"
 //	@Router			/products/search [get]
 func (pr *Product) SearchProduct(c *gin.Context) {
-	// Start a new span for the handler function
-	channels := []string{"Zap", "Honeycomb"}
-	loggerRepo, loggerErr := logger.NewLoggerRepository(channels, pr.Persistence, c, "handlers/SearchProduct")
-	loggerRepo.SetContextWithSpan()
-	defer loggerRepo.End()
-
-	if loggerErr != nil {
-		loggerRepo.Warn("Error in initializing logger", map[string]interface{}{})
-	}
-	
+	// Start a new span for the handler function	
 	responseContextData := entity.ResponseContext{Ctx: c}
 	var productsName = c.Query("name")
 	

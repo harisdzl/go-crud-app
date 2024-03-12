@@ -5,7 +5,6 @@ import (
 	"github.com/harisquqo/quqo-challenge-1/domain/repository/logger_repository"
 	honeycomb "github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger/honeycomb_implementation"
 	zap "github.com/harisquqo/quqo-challenge-1/infrastructure/implementations/logger/zap_implementation"
-	"github.com/harisquqo/quqo-challenge-1/infrastructure/persistence/base"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -13,8 +12,7 @@ import (
 type LoggerRepo struct {
 	loggers []logger_repository.LoggerRepository
 	c *gin.Context
-	p *base.Persistence
-	span trace.Span
+	honeycombRepo *honeycomb.HoneycombRepo
 }
 
 const (
@@ -22,33 +20,26 @@ const (
 	Honeycomb = "Honeycomb"
 )
 
+type Option func(*LoggerRepo)
+
 // NewLoggerRepository creates a new logger repository based on the specified channels
-func NewLoggerRepository(channels []string, p *base.Persistence, c *gin.Context, info string) (LoggerRepo, error) {
+func NewLoggerRepository(channels []string) (LoggerRepo) {
 	var loggers []logger_repository.LoggerRepository
 	var honeycombRepo *honeycomb.HoneycombRepo
 	for _, channel := range channels {
 		switch channel {
 		case Zap:
-			loggers = append(loggers, zap.NewZapRepository(p, c))
+			loggers = append(loggers, zap.NewZapRepository())
 		case Honeycomb:
-			honeycombRepo = honeycomb.NewHoneycombRepository(p, c, info)
+			honeycombRepo = honeycomb.NewHoneycombRepository()
 			loggers = append(loggers, honeycombRepo)
 		default:
 			// You might want to log or handle unsupported channels
 			continue
 		}
 	}
-
-	var span trace.Span
-	if honeycombRepo != nil {
-		span = honeycombRepo.GetSpan()
-	}
-
-	// if len(loggers) == 0 {
-	// 	return nil, errors.New("no supported logger type found in the provided channels")
-	// }
-
-	return LoggerRepo{loggers: loggers, c: c, span: span}, nil
+	
+	return LoggerRepo{loggers: loggers, c: nil, honeycombRepo: honeycombRepo}
 }
 
 // Debug logs a debug message
@@ -86,16 +77,34 @@ func (l *LoggerRepo) Fatal(msg string, fields map[string]interface{}) {
 	}
 }
 
-// End function
+// Start function 
+func (l *LoggerRepo) Start(c *gin.Context, info string, options ...Option) trace.Span {
+	l.c = c
 
-func (l *LoggerRepo) End() {
-	l.span.End()
+	var span trace.Span
+	for _, logger := range l.loggers {
+		_, ok := logger.(*honeycomb.HoneycombRepo)
+		if ok {
+			span = logger.Start(c, info)
+		} else {
+			logger.Start(c, info)
+		}
+	}
+
+	// Execute optional functions
+    for _, opts := range options {
+        opts(l)
+	}
+
+	return span
 }
 
-// SetContextWithSpan sets the context in the Gin context with the provided span
-func (l *LoggerRepo) SetContextWithSpan() {
-    // if l.span == nil {
-    //     return // If span is nil, do nothing
-    // }
-    l.c.Set("otel_context", trace.ContextWithSpan(l.c.Request.Context(), l.span))
+func (l *LoggerRepo) SetContextWithSpanFunc() Option {
+    return func(l *LoggerRepo) {
+        l.c.Set("otel_context", trace.ContextWithSpan(l.c, l.honeycombRepo.GetSpan()))
+    }
+}
+
+func (l *LoggerRepo) SetContextWithSpan(span trace.Span) {
+	l.c.Set("otel_context", trace.ContextWithSpan(l.c, span))
 }
